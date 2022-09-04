@@ -44,6 +44,6 @@ Once you start the bot you will be asked a few questions.
 4# 'Logging': If you want to enable logging type in 'yes'. Enabling logging will create a file called auto_log.txt. In this file the message itself will be stored along with time and date.
 
 ### Final Notes
-When the bot is running you can see if the reaction/messsage you used is in the cache or not. The program will print out.
+When the bot is running you can see if the reaction/messsage you used is in the cache or not. The program will tell you if the last usage was in the cache.
 
 Setting 'soft cache limit' or 'hard cache limit' too low (setting either of them under 10 isn't recommended) can cause issues.
