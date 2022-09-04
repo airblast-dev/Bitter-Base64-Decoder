@@ -34,8 +34,7 @@ if int(hcache_limit)<2:
 while True:
     logging = input(f"Enter 'true' to enable logging. This will only log the decoded string and time/date. Any other response will keep logging disabled: ").lower()
     break
-if scache_limit >= hcache_limit:
-    hcache_limit = scache_limit + 1
+
 
 hcache_limit = int(hcache_limit)
 now = str(datetime.now())
@@ -73,24 +72,19 @@ async def on_message(message):
         global per_reaction
         if len(message.embeds) == 0:
             for line in message.content.split():
-               try:
-                   if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
-                    per_reaction[message.id] = dict()
-                    break
-               except: continue
-            for line in message.content.split():
                 try:
                     if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
                         emoji = emoji[1:]
                         emoji = str(count) + emoji
                         if len(b64dec(line)) > 15:
                             await message.add_reaction(emoji)
-                            per_reaction[message.id][count] = dict()
+                            try: per_reaction[message.id][count] = dict()
+                            except: per_reaction[message.id] = dict()
                             per_reaction[message.id][count] = b64dec(line)
                             per_reaction[message.id]["usage"] = dict()
                             per_reaction[message.id]["usage"] = 0
                             count += 1
-                except:pass
+                except: pass
                 if message.content == "b!help":
                     help_embed = nextcord.Embed(
                         title=f"This bot reacts to messages with a base64 encoded string and each reaction represents a base64 "
@@ -191,7 +185,7 @@ async def on_raw_reaction_add(payload):
         await payload.member.send(embed=decoded_embed)
         if logging == "true":
             open("auto_log.txt", "a").write(
-                f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n")
+                f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
         try:
             per_reaction[payload.message_id]["usage"] += 1
         except:
@@ -199,37 +193,43 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
     message = await channel.fetch_message(payload.message_id)
-    if rezi_support == "yes" and len(message.embeds) > 0 and payload.member != client.user:                             # This whole part is so the bot works well with Rezi Bot, to enable it
-        embeds = message.embeds                                                                                         # just type in 'yes' on startup.
+    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
+        embeds = message.embeds                                                                                                     # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
         for embed in embeds:
             embed_dict = embed.to_dict()
             for line in embed_dict["fields"]:
                 line = line["value"]
-                try:
-                    if line == b64enc(b64dec(line)):
-                        emoji = str(count) + "️⃣"
-                        if len(b64dec(line)) > 15:
-                            await message.add_reaction(emoji)
-                            if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):               # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
-                                per_reaction[payload.message_id][count] = dict()                                        # aren't clickable in DM's.
-                                per_reaction[payload.message_id][count] = b64dec(line)                                  # This part is to make sure its stored with the "https://" part.
-                            else:
+                if line == b64enc(b64dec(line)):
+                    emoji = str(count) + "️⃣"
+                    if len(b64dec(line)) > 15:
+                        await message.add_reaction(emoji)
+                        if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):                   # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
+                            try:                                                                                        # aren't clickable in DM's.
                                 per_reaction[payload.message_id][count] = dict()
-                                per_reaction[payload.message_id][count] = "http://" + b64dec(line)
-                            count += 1
-                except:
-                    pass
+                            except:
+                                per_reaction[payload.message_id] = dict()
+                                per_reaction[payload.message_id][count] = dict()
+                            per_reaction[payload.message_id][count] = b64dec(line)
+                        else:
+                            try:                                                                                        # aren't clickable in DM's.
+                                per_reaction[payload.message_id][count] = dict()
+                            except:
+                                per_reaction[payload.message_id] = dict()
+                                per_reaction[payload.message_id][count] = dict()
+                            per_reaction[payload.message_id][count] = "http://" + b64dec(line)
+                        count += 1
+
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][
                                            int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         try:
-            per_reaction[payload.message_id]["usage"] += 1
+            per_reaction[message.id]["usage"] += 1
         except:
-            per_reaction[payload.message_id]["usage"] = dict()
-            per_reaction[payload.message_id]["usage"] = 1
+            per_reaction[message.id]["usage"] = dict()
+            per_reaction[message.id]["usage"] = 1
         return
     if payload.member != client.user:                                                                                   # This part is to read old messages that got the reaction and stores the message
         print("Response is not in cache.")                                                                              # contents into the cache.
@@ -257,4 +257,4 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
 
-client.run(YOUR TOKEN)
+client.run("Your Token Here")
