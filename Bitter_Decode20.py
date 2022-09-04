@@ -21,9 +21,6 @@ while True:
     if hcache_limit == "":
         hcache_limit = 2000
         break
-    elif int(hcache_limit)<2:
-        hcache_limit = 2
-        break
     try:
         int(hcache_limit)
         break
@@ -31,6 +28,10 @@ while True:
         continue
 if int(hcache_limit)<2:
     hcache_limit = 2
+
+if scache_limit >= hcache_limit:
+    hcache_limit = scache_limit + 1
+
 while True:
     logging = input(f"Enter 'true' to enable logging. This will only log the decoded string and time/date. Any other response will keep logging disabled: ").lower()
     break
@@ -78,13 +79,16 @@ async def on_message(message):
                         emoji = str(count) + emoji
                         if len(b64dec(line)) > 15:
                             await message.add_reaction(emoji)
-                            try: per_reaction[message.id][count] = dict()
-                            except: per_reaction[message.id] = dict()
+                            try:
+                                per_reaction[message.id][count] = dict()
+                            except:
+                                per_reaction[message.id] = dict()
                             per_reaction[message.id][count] = b64dec(line)
                             per_reaction[message.id]["usage"] = dict()
                             per_reaction[message.id]["usage"] = 0
                             count += 1
-                except: pass
+                except:
+                    pass
                 if message.content == "b!help":
                     help_embed = nextcord.Embed(
                         title=f"This bot reacts to messages with a base64 encoded string and each reaction represents a base64 "
@@ -193,7 +197,7 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
     message = await channel.fetch_message(payload.message_id)
-    if rezi_support == "yes" and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
+    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
         embeds = message.embeds                                                                                                     # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
@@ -257,4 +261,4 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
 
-client.run("Your Token Here")
+client.run("Insert Token Here")
