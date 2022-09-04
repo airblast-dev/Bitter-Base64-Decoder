@@ -34,7 +34,8 @@ if int(hcache_limit)<2:
 while True:
     logging = input(f"Enter 'true' to enable logging. This will only log the decoded string and time/date. Any other response will keep logging disabled: ").lower()
     break
-
+if scache_limit >= hcache_limit:
+    hcache_limit = scache_limit + 1
 
 hcache_limit = int(hcache_limit)
 now = str(datetime.now())
