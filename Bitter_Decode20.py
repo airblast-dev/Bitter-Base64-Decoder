@@ -261,4 +261,4 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
 
-client.run("Insert Token Here")
+client.run("Your Token")
