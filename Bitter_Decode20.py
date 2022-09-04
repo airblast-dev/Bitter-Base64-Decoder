@@ -193,7 +193,7 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
     message = await channel.fetch_message(payload.message_id)
-    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
+    if rezi_support == "yes" and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
         embeds = message.embeds                                                                                                     # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
