@@ -73,6 +73,8 @@ async def on_message(message):
         global per_reaction
         if len(message.embeds) == 0:
             for line in message.content.split():
+                if line.startswith("``") and line.endswith("``"):
+                    line = line.replace("``","")
                 try:
                     if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
                         emoji = emoji[1:]
