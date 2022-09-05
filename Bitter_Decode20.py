@@ -73,7 +73,7 @@ async def on_message(message):
     global per_reaction
     if len(message.embeds) == 0:
         for line in message.content.split():
-            if line.startswith("`") and line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
+            if line.startswith("`") or line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
                 line = line.replace("`", "", 6)
             try:
                 if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
@@ -240,7 +240,7 @@ async def on_raw_reaction_add(payload):
         count = 1
         per_reaction[payload.message_id] = dict()
         for line in message.content.split():
-            if line.startswith("`") and line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
+            if line.startswith("`") or line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
                 line = line.replace("`", "", 6)
             try:
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", "") and len(b64dec(line)) > 15:
