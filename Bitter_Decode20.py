@@ -68,75 +68,72 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-        count = 1
-        emoji="1️⃣"
-        global per_reaction
-        if len(message.embeds) == 0:
-            for line in message.content.split():
-                if line.startswith("``") and line.endswith("``"):
-                    line = line.replace("``","")
-                try:
-                    if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
-                        emoji = emoji[1:]
-                        emoji = str(count) + emoji
-                        if len(b64dec(line)) > 15:
-                            await message.add_reaction(emoji)
-                            try:
-                                per_reaction[message.id][count] = dict()
-                            except:
-                                per_reaction[message.id] = dict()
-                            per_reaction[message.id][count] = b64dec(line)
-                            per_reaction[message.id]["usage"] = dict()
-                            per_reaction[message.id]["usage"] = 0
-                            count += 1
-                except:
-                    pass
-                if message.content == "b!help":
-                    help_embed = nextcord.Embed(
-                        title=f"This bot reacts to messages with a base64 encoded string and each reaction represents a base64 "
-                              "string. Click on one of the reactions to get the decoded text.\nFor an example click the reaction "
-                              "bellow.")
-                    await message.channel.send(embed=help_embed)
-                    await message.channel.send("aHR0cHM6Ly93d3cueW91dHViZS5jb20v")
-        try:
-            if rezi_support == "yes" and str(message.author) == "Rezi#8393":                                            # This part is so the bot works well with Rezi Bot, to enable it
-                emoji = "1️⃣"                                                                                             # just type in 'yes' on startup.
-                embeds = message.embeds
-                count = 1
-                for embed in embeds:
-                    embed_dict = embed.to_dict()
-                    for line in embed_dict["fields"]:
-                        line = line["value"]
+    count = 1
+    emoji="1️⃣"
+    global per_reaction
+    if len(message.embeds) == 0:
+        for line in message.content.split():
+            if line.startswith("`") and line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
+                line = line.replace("`", "", 6)
+            try:
+                if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
+                    emoji = emoji[1:]
+                    emoji = str(count) + emoji
+                    if len(b64dec(line)) > 15:
+                        await message.add_reaction(emoji)
                         try:
-                            if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
-                                per_reaction[message.id] = dict()
-                        except: pass
-                for embed in embeds:
-                    embed_dict = embed.to_dict()
-                    for line in embed_dict["fields"]:
-                        line = line["value"]
-                        try:
-                            if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
-                                emoji = emoji[1:]
-                                emoji = str(count) + emoji
-                                if len(b64dec(line)) > 15:
-                                    if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):
-                                        per_reaction[message.id][count] = dict()
-                                        per_reaction[message.id][count] = b64dec(line)
-                                    else:
-                                        per_reaction[message.id][count] = dict()
-                                        per_reaction[message.id][count] = "http://" + b64dec(line)
-                                    per_reaction[message.id]["usage"] = dict()
-                                    per_reaction[message.id]["usage"] = 0
-                                    count += 1
-                                    try:
-                                        await message.add_reaction(emoji)
-                                    except:
-                                        pass
+                            per_reaction[message.id][count] = dict()
                         except:
-                            pass
-        except:
-            pass
+                            per_reaction[message.id] = dict()
+                        per_reaction[message.id][count] = b64dec(line)
+                        per_reaction[message.id]["usage"] = dict()
+                        per_reaction[message.id]["usage"] = 0
+                        count += 1
+            except:
+                pass
+            if message.content == "b!help":
+                help_embed = nextcord.Embed(
+                    title=f"This bot reacts to messages with a base64 encoded string and each reaction represents a base64 "
+                          "string. Click on one of the reactions to get the decoded text.\nFor an example click the reaction "
+                          "bellow.")
+                await message.channel.send(embed=help_embed)
+                await message.channel.send("aHR0cHM6Ly93d3cueW91dHViZS5jb20v")
+    try:
+        if rezi_support == "yes" and str(message.author) == "Rezi#8393":                                                # This part is so the bot works well with Rezi Bot, to enable it
+            emoji = "1️⃣"                                                                                                 # just type in 'yes' on startup.
+            embeds = message.embeds
+            count = 1
+            for embed in embeds:
+                embed_dict = embed.to_dict()
+                for line in embed_dict["fields"]:
+                    line = line["value"]
+                    try:
+                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
+                            per_reaction[message.id] = dict()
+                    except: pass
+            for embed in embeds:
+                embed_dict = embed.to_dict()
+                for line in embed_dict["fields"]:
+                    line = line["value"]
+                    try:
+                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
+                            emoji = emoji[1:]
+                            emoji = str(count) + emoji
+                            if len(b64dec(line)) > 15:
+                                if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):
+                                    per_reaction[message.id][count] = dict()
+                                    per_reaction[message.id][count] = b64dec(line)
+                                else:
+                                    per_reaction[message.id][count] = dict()
+                                    per_reaction[message.id][count] = "http://" + b64dec(line)
+                                per_reaction[message.id]["usage"] = dict()
+                                per_reaction[message.id]["usage"] = 0
+                                count += 1
+                                await message.add_reaction(emoji)
+                    except:
+                        pass
+    except:
+        pass
 @client.event
 async def on_raw_reaction_add(payload):
     global per_reaction
@@ -219,7 +216,7 @@ async def on_raw_reaction_add(payload):
                                 per_reaction[payload.message_id][count] = dict()
                             per_reaction[payload.message_id][count] = b64dec(line)
                         else:
-                            try:                                                                                        # aren't clickable in DM's.
+                            try:
                                 per_reaction[payload.message_id][count] = dict()
                             except:
                                 per_reaction[payload.message_id] = dict()
@@ -243,6 +240,8 @@ async def on_raw_reaction_add(payload):
         count = 1
         per_reaction[payload.message_id] = dict()
         for line in message.content.split():
+            if line.startswith("`") and line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
+                line = line.replace("`", "", 6)
             try:
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", "") and len(b64dec(line)) > 15:
                     per_reaction[payload.message_id][count] = dict()
