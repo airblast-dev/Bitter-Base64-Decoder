@@ -2,12 +2,13 @@
 ## What does Bitter! do ?
 Bitter! is a discord bot that will read and detect base64 strings. For every base64 string it detects, it will add a numbered reaction.
 A user can click on the reaction and Bitter! will DM the decoded version to them.
-## Can i add the bot to my server ?
-Sure thing, just click [here](https://discord.com/oauth2/authorize?client_id=1004271933178773534&permissions=0&scope=bot%20applications.commands).
 
 ### Here is an example response:
 
 ![example](https://user-images.githubusercontent.com/67981946/188310549-87c513fc-bc13-46d6-bebc-a0e51f042c24.png)
+
+## Can i add the bot to my server ?
+Sure thing, just click [here](https://discord.com/oauth2/authorize?client_id=1004271933178773534&permissions=0&scope=bot%20applications.commands).
 
 ## What are the supported use cases ?
 ### User sent message's
