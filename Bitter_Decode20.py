@@ -1,3 +1,5 @@
+import re
+
 import nextcord
 import base64
 from datetime import datetime
@@ -73,10 +75,13 @@ async def on_message(message):
     global per_reaction
     if len(message.embeds) == 0:
         for line in message.content.split():
-            if line.startswith("`") or line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
-                line = line.replace("`", "", 6)
             try:
-                if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
+                if line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
+                    line = line.replace("`", "", 6)
+            except:
+                pass
+            try:
+                if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):
                     emoji = emoji[1:]
                     emoji = str(count) + emoji
                     if len(b64dec(line)) > 15:
@@ -187,8 +192,7 @@ async def on_raw_reaction_add(payload):
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:", description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         if logging == "true":
-            open("auto_log.txt", "a").write(
-                f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
+            open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
         try:
             per_reaction[payload.message_id]["usage"] += 1
         except:
@@ -240,16 +244,19 @@ async def on_raw_reaction_add(payload):
         count = 1
         per_reaction[payload.message_id] = dict()
         for line in message.content.split():
-            if line.startswith("`") or line.endswith("`") and line.replace("=", "").replace("`","",6) == b64enc(b64dec(line.replace("`","", 6))).replace("=", ""):
-                line = line.replace("`", "", 6)
+            try:
+                if line.replace("=", "").replace("`", "", 6) == b64enc(b64dec(line.replace("`", "", 6))).replace("=",
+                                                                                                                 ""):
+                    line = line.replace("`", "", 6)
+            except:
+                pass
             try:
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", "") and len(b64dec(line)) > 15:
                     per_reaction[payload.message_id][count] = dict()
                     per_reaction[payload.message_id][count] = b64dec(line)
                     count+=1
                     if logging == "true":
-                        open("auto_log.txt", "a").write(
-                            f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
+                        open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
             except: pass
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
