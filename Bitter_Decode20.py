@@ -1,10 +1,9 @@
-import re
-
 import nextcord
 import base64
 from datetime import datetime
 
 rezi_support = input(f"Type 'yes' to enable Rezi Bot support: ").lower()
+cove_bot_support = input(f"Type 'yes' to enable Cove Bot support: ").lower()
 while True:
     scache_limit = input(f"Enter a number for the soft cache limit. This limit is what the bot will try to adhere to. Leave blank for default value. (Default is 1800): ")
     if scache_limit == "":
@@ -81,7 +80,7 @@ async def on_message(message):
             except:
                 pass
             try:
-                if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):
+                if line.replace("=","") == b64enc(b64dec(line)).replace("=",""):                                    #
                     emoji = emoji[1:]
                     emoji = str(count) + emoji
                     if len(b64dec(line)) > 15:
@@ -120,6 +119,40 @@ async def on_message(message):
                 embed_dict = embed.to_dict()
                 for line in embed_dict["fields"]:
                     line = line["value"]
+                    try:
+                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
+                            emoji = emoji[1:]
+                            emoji = str(count) + emoji
+                            if len(b64dec(line)) > 15:
+                                if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):
+                                    per_reaction[message.id][count] = dict()
+                                    per_reaction[message.id][count] = b64dec(line)
+                                else:
+                                    per_reaction[message.id][count] = dict()
+                                    per_reaction[message.id][count] = "http://" + b64dec(line)
+                                per_reaction[message.id]["usage"] = dict()
+                                per_reaction[message.id]["usage"] = 0
+                                count += 1
+                                await message.add_reaction(emoji)
+                    except:
+                        pass
+    except:
+        pass
+    try:
+        if cove_bot_support == "yes" and str(message.author) == "CoveBot#6047":                                                # This part is so the bot works well with Rezi Bot, to enable it
+            emoji = "1️⃣"                                                                                                 # just type in 'yes' on startup.
+            embeds = message.embeds
+            count = 1
+            for embed in embeds:
+                embed_dict = embed.to_dict()
+                for line in embed_dict["description"].split():
+                    try:
+                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
+                            per_reaction[message.id] = dict()
+                    except: pass
+            for embed in embeds:
+                embed_dict = embed.to_dict()
+                for line in embed_dict["description"].split():
                     try:
                         if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
                             emoji = emoji[1:]
@@ -227,7 +260,36 @@ async def on_raw_reaction_add(payload):
                                 per_reaction[payload.message_id][count] = dict()
                             per_reaction[payload.message_id][count] = "http://" + b64dec(line)
                         count += 1
-
+        print(message.author)
+    if cove_bot_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "CoveBot#6047":
+        embeds = message.embeds  # just type in 'yes' on startup.
+        count = 1
+        per_reaction[payload.message_id] = dict()
+        for embed in embeds:
+            embed_dict = embed.to_dict()
+            for line in embed_dict["description"].split():
+                print(line)
+                if line == b64enc(b64dec(line)):
+                    emoji = str(count) + "️⃣"
+                    if len(b64dec(line)) > 15:
+                        await message.add_reaction(emoji)
+                        if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
+                            try:
+                                per_reaction[payload.message_id][count] = dict()
+                                per_reaction[payload.message_id][count] = b64dec(line)
+                            except:
+                                per_reaction[payload.message_id] = dict()
+                                per_reaction[payload.message_id][count] = dict()
+                                per_reaction[payload.message_id][count] = b64dec(line)
+                        else:
+                            try:
+                                per_reaction[payload.message_id][count] = dict()
+                                per_reaction[payload.message_id][count] = b64dec(line)
+                            except:
+                                per_reaction[payload.message_id] = dict()
+                                per_reaction[payload.message_id][count] = dict()
+                            per_reaction[payload.message_id][count] = "http://" + b64dec(line)
+                        count += 1
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][
                                            int(payload.emoji.name[0])], color=0x444444)
@@ -245,8 +307,7 @@ async def on_raw_reaction_add(payload):
         per_reaction[payload.message_id] = dict()
         for line in message.content.split():
             try:
-                if line.replace("=", "").replace("`", "", 6) == b64enc(b64dec(line.replace("`", "", 6))).replace("=",
-                                                                                                                 ""):
+                if line.replace("=", "").replace("`", "", 6) == b64enc(b64dec(line.replace("`", "", 6))).replace("=", ""):
                     line = line.replace("`", "", 6)
             except:
                 pass
@@ -257,7 +318,8 @@ async def on_raw_reaction_add(payload):
                     count+=1
                     if logging == "true":
                         open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
-            except: pass
+            except:
+                pass
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
                                        color=0x444444)
