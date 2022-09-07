@@ -27,6 +27,7 @@ while True:
         break
     except:
         continue
+hcache_limit = int(hcache_limit)
 if int(hcache_limit)<2:
     hcache_limit = 2
 
@@ -176,6 +177,8 @@ async def on_message(message):
 async def on_raw_reaction_add(payload):
     global per_reaction
     print(per_reaction)
+    if payload.member == client.user:
+        return
     try:
         a = per_reaction[payload.message_id]
         try:
@@ -233,8 +236,8 @@ async def on_raw_reaction_add(payload):
             per_reaction[payload.message_id]["usage"] = 1
         return
     message = await channel.fetch_message(payload.message_id)
-    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":                        # This whole part is so the bot works well with Rezi Bot, to enable it
-        embeds = message.embeds                                                                                                     # just type in 'yes' on startup.
+    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":         # This whole part is so the bot works well with Rezi Bot, to enable it
+        embeds = message.embeds                                              # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
         for embed in embeds:
@@ -245,22 +248,23 @@ async def on_raw_reaction_add(payload):
                     emoji = str(count) + "️⃣"
                     if len(b64dec(line)) > 15:
                         await message.add_reaction(emoji)
-                        if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):                   # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
-                            try:                                                                                        # aren't clickable in DM's.
-                                per_reaction[payload.message_id][count] = dict()
-                            except:
-                                per_reaction[payload.message_id] = dict()
-                                per_reaction[payload.message_id][count] = dict()
-                            per_reaction[payload.message_id][count] = b64dec(line)
-                        else:
-                            try:
-                                per_reaction[payload.message_id][count] = dict()
-                            except:
-                                per_reaction[payload.message_id] = dict()
-                                per_reaction[payload.message_id][count] = dict()
+                        try:  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
+                            per_reaction[payload.message_id][count] = dict()
+                        except:
+                            per_reaction[payload.message_id] = dict()
+                            per_reaction[payload.message_id][count] = dict()
+                        if b64dec(line).startswith("https://") or b64dec(line).startswith("http://"):
                             per_reaction[payload.message_id][count] = "http://" + b64dec(line)
+                        else:
+                            per_reaction[payload.message_id][count] = b64dec(line)
                         count += 1
-        print(message.author)
+            decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
+                                                       description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
+                                                       color=0x444444)
+            await payload.member.send(embed=decoded_embed)
+            per_reaction[payload.message_id]["usage"] = dict()
+            per_reaction[payload.message_id]["usage"] = 1
+            return
     if cove_bot_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "CoveBot#6047":
         embeds = message.embeds  # just type in 'yes' on startup.
         count = 1
@@ -268,39 +272,30 @@ async def on_raw_reaction_add(payload):
         for embed in embeds:
             embed_dict = embed.to_dict()
             for line in embed_dict["description"].split():
-                print(line)
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
                     if len(b64dec(line)) > 15:
                         await message.add_reaction(emoji)
-                        if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
-                            try:
-                                per_reaction[payload.message_id][count] = dict()
-                                per_reaction[payload.message_id][count] = b64dec(line)
-                            except:
-                                per_reaction[payload.message_id] = dict()
-                                per_reaction[payload.message_id][count] = dict()
-                                per_reaction[payload.message_id][count] = b64dec(line)
-                        else:
-                            try:
-                                per_reaction[payload.message_id][count] = dict()
-                                per_reaction[payload.message_id][count] = b64dec(line)
-                            except:
-                                per_reaction[payload.message_id] = dict()
-                                per_reaction[payload.message_id][count] = dict()
+                        try:                                                                # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
+                            per_reaction[payload.message_id][count] = dict()
+                        except:
+                            per_reaction[payload.message_id] = dict()
+                            per_reaction[payload.message_id][count] = dict()
+                        if b64dec(line).startswith("https://") or b64dec(line).startswith("http://"):
                             per_reaction[payload.message_id][count] = "http://" + b64dec(line)
+                        else:
+                            per_reaction[payload.message_id][count] = b64dec(line)
                         count += 1
         decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
-                                       description=per_reaction[payload.message_id][
-                                           int(payload.emoji.name[0])], color=0x444444)
+                                       description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         try:
-            per_reaction[message.id]["usage"] += 1
+            per_reaction[payload.message_id]["usage"] += 1
         except:
-            per_reaction[message.id]["usage"] = dict()
-            per_reaction[message.id]["usage"] = 1
+            per_reaction[payload.message_id]["usage"] = dict()
+            per_reaction[payload.message_id]["usage"] = 1
         return
-    if payload.member != client.user:                                                                                   # This part is to read old messages that got the reaction and stores the message
+    if payload.member != client.user and str(message.author) != "Rezi#8393":                                                                                   # This part is to read old messages that got the reaction and stores the message
         print("Response is not in cache.")                                                                              # contents into the cache.
         message = await channel.fetch_message(payload.message_id)
         count = 1
