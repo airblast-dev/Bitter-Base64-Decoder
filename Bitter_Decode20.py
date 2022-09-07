@@ -1,4 +1,4 @@
-import nextcord
+import discord
 import base64
 from datetime import datetime
 
@@ -41,9 +41,9 @@ while True:
 
 hcache_limit = int(hcache_limit)
 now = str(datetime.now())
-intents = nextcord.Intents.default()
+intents = discord.Intents.default()
 intents.message_content = True
-client = nextcord.Client(intents=intents)
+client = discord.Client(intents=intents)
 per_reaction = dict()
 
 
@@ -66,7 +66,7 @@ async def on_ready():
     global client
     print(f'We have logged in as {client.user}.')
     await client.change_presence(
-        activity=nextcord.Activity(type=nextcord.ActivityType.listening, name=f'b!help in a channel'))
+        activity=discord.Activity(type=discord.ActivityType.listening, name=f'b!help in a channel'))
 
 @client.event
 async def on_message(message):
@@ -97,7 +97,7 @@ async def on_message(message):
             except:
                 pass
             if message.content == "b!help":
-                help_embed = nextcord.Embed(
+                help_embed = discord.Embed(
                     title=f"This bot reacts to messages with a base64 encoded string and each reaction represents a base64 "
                           "string. Click on one of the reactions to get the decoded text.\nFor an example click the reaction "
                           "bellow.")
@@ -225,7 +225,7 @@ async def on_raw_reaction_add(payload):
     channel = await client.fetch_channel(payload.channel_id)
     if payload.message_id in per_reaction and payload.member != client.user:                                            # This area is for normal user sent messages, this is for messages that are already in the cache.
         print("Response is in cache.")
-        decoded_embed = nextcord.Embed(title="Bitter decoded this to:", description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
+        decoded_embed = discord.Embed(title="Bitter decoded this to:", description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         if logging == "true":
             open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
@@ -258,7 +258,7 @@ async def on_raw_reaction_add(payload):
                         else:
                             per_reaction[payload.message_id][count] = b64dec(line)
                         count += 1
-            decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
+            decoded_embed = discord.Embed(title="Bitter decoded this to:",
                                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
                                                        color=0x444444)
             await payload.member.send(embed=decoded_embed)
@@ -286,7 +286,7 @@ async def on_raw_reaction_add(payload):
                         else:
                             per_reaction[payload.message_id][count] = b64dec(line)
                         count += 1
-        decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
+        decoded_embed = discord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         try:
@@ -315,7 +315,7 @@ async def on_raw_reaction_add(payload):
                         open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
             except:
                 pass
-        decoded_embed = nextcord.Embed(title="Bitter decoded this to:",
+        decoded_embed = discord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
                                        color=0x444444)
         await payload.member.send(embed=decoded_embed)
