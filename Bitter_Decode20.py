@@ -86,12 +86,9 @@ async def on_message(message):
                     emoji = str(count) + emoji
                     if len(b64dec(line)) > 15:
                         await message.add_reaction(emoji)
-                        try:
-                            per_reaction[message.id][count] = dict()
-                        except:
-                            per_reaction[message.id] = dict()
+                        if count == 1:
+                            per_reaction[message.id] = {}
                         per_reaction[message.id][count] = b64dec(line)
-                        per_reaction[message.id]["usage"] = dict()
                         per_reaction[message.id]["usage"] = 0
                         count += 1
             except:
@@ -102,7 +99,7 @@ async def on_message(message):
                           "string. Click on one of the reactions to get the decoded text.\nFor an example click the reaction "
                           "bellow.")
                 await message.channel.send(embed=help_embed)
-                await message.channel.send("aHR0cHM6Ly93d3cueW91dHViZS5jb20v")
+                await message.channel.send("``aHR0cHM6Ly93d3cueW91dHViZS5jb20v and aGVyZSBpcyBhbm90aGVyIGJhc2U2NCA6Lik``")
     try:
         if rezi_support == "yes" and str(message.author) == "Rezi#8393":                                                # This part is so the bot works well with Rezi Bot, to enable it
             emoji = "1️⃣"                                                                                                 # just type in 'yes' on startup.
@@ -114,24 +111,15 @@ async def on_message(message):
                     line = line["value"]
                     try:
                         if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
-                            per_reaction[message.id] = dict()
-                    except: pass
-            for embed in embeds:
-                embed_dict = embed.to_dict()
-                for line in embed_dict["fields"]:
-                    line = line["value"]
-                    try:
-                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
                             if len(b64dec(line)) > 15:
+                                if count == 1:
+                                    per_reaction[message.id] = {}
                                 if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):
-                                    per_reaction[message.id][count] = dict()
                                     per_reaction[message.id][count] = b64dec(line)
                                 else:
-                                    per_reaction[message.id][count] = dict()
                                     per_reaction[message.id][count] = "http://" + b64dec(line)
-                                per_reaction[message.id]["usage"] = dict()
                                 per_reaction[message.id]["usage"] = 0
                                 count += 1
                                 await message.add_reaction(emoji)
@@ -149,23 +137,15 @@ async def on_message(message):
                 for line in embed_dict["description"].split():
                     try:
                         if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
-                            per_reaction[message.id] = dict()
-                    except: pass
-            for embed in embeds:
-                embed_dict = embed.to_dict()
-                for line in embed_dict["description"].split():
-                    try:
-                        if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
                             if len(b64dec(line)) > 15:
+                                if count == 1:
+                                    per_reaction[message.id] = {}
                                 if b64dec(line).startswith("http://") or b64dec(line).startswith("https://"):
-                                    per_reaction[message.id][count] = dict()
                                     per_reaction[message.id][count] = b64dec(line)
                                 else:
-                                    per_reaction[message.id][count] = dict()
                                     per_reaction[message.id][count] = "http://" + b64dec(line)
-                                per_reaction[message.id]["usage"] = dict()
                                 per_reaction[message.id]["usage"] = 0
                                 count += 1
                                 await message.add_reaction(emoji)
@@ -229,16 +209,12 @@ async def on_raw_reaction_add(payload):
         await payload.member.send(embed=decoded_embed)
         if logging == "true":
             with open("auto_log.txt", "a") as file:
-                file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n")
-        try:
-            per_reaction[payload.message_id]["usage"] += 1
-        except:
-            per_reaction[payload.message_id]["usage"] = dict()
-            per_reaction[payload.message_id]["usage"] = 1
+                file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
+        per_reaction[payload.message_id]["usage"] += 1
         return
     message = await channel.fetch_message(payload.message_id)
-    if rezi_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "Rezi#8393":         # This whole part is so the bot works well with Rezi Bot, to enable it
-        embeds = message.embeds                                              # just type in 'yes' on startup.
+    if rezi_support == "yes" and  payload.message_id not in per_reaction and str(message.author) == "Rezi#8393":         # This whole part is so the bot works well with Rezi Bot, to enable it
+        embeds = message.embeds                                                                                                                      # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
         for embed in embeds:
@@ -248,12 +224,7 @@ async def on_raw_reaction_add(payload):
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
                     if len(b64dec(line)) > 15:
-                        await message.add_reaction(emoji)
-                        try:  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
-                            per_reaction[payload.message_id][count] = dict()
-                        except:
-                            per_reaction[payload.message_id] = dict()
-                            per_reaction[payload.message_id][count] = dict()
+                        await message.add_reaction(emoji)                                                               # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
                         if b64dec(line).startswith("https://") or b64dec(line).startswith("http://"):
                             per_reaction[payload.message_id][count] = "http://" + b64dec(line)
                         else:
@@ -263,10 +234,9 @@ async def on_raw_reaction_add(payload):
                                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
                                                        color=0x444444)
             await payload.member.send(embed=decoded_embed)
-            per_reaction[payload.message_id]["usage"] = dict()
             per_reaction[payload.message_id]["usage"] = 1
             return
-    if cove_bot_support == "yes" and  payload.message_id not in per_reaction and len(message.embeds) > 0 and str(message.author) == "CoveBot#6047":
+    if cove_bot_support == "yes" and  payload.message_id not in per_reaction and str(message.author) == "CoveBot#6047":
         embeds = message.embeds  # just type in 'yes' on startup.
         count = 1
         per_reaction[payload.message_id] = dict()
@@ -276,12 +246,7 @@ async def on_raw_reaction_add(payload):
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
                     if len(b64dec(line)) > 15:
-                        await message.add_reaction(emoji)
-                        try:                                                                # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
-                            per_reaction[payload.message_id][count] = dict()
-                        except:
-                            per_reaction[payload.message_id] = dict()
-                            per_reaction[payload.message_id][count] = dict()
+                        await message.add_reaction(emoji)                                                               # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
                         if b64dec(line).startswith("https://") or b64dec(line).startswith("http://"):
                             per_reaction[payload.message_id][count] = "http://" + b64dec(line)
                         else:
@@ -290,13 +255,9 @@ async def on_raw_reaction_add(payload):
         decoded_embed = discord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
-        try:
-            per_reaction[payload.message_id]["usage"] += 1
-        except:
-            per_reaction[payload.message_id]["usage"] = dict()
-            per_reaction[payload.message_id]["usage"] = 1
+        per_reaction[payload.message_id]["usage"] = 1
         return
-    if payload.member != client.user and str(message.author) != "Rezi#8393":                                                                                   # This part is to read old messages that got the reaction and stores the message
+    if payload.member != client.user:                                                                                   # This part is to read old messages that got the reaction and stores the message
         print("Response is not in cache.")                                                                              # contents into the cache.
         message = await channel.fetch_message(payload.message_id)
         count = 1
@@ -309,23 +270,18 @@ async def on_raw_reaction_add(payload):
                 pass
             try:
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", "") and len(b64dec(line)) > 15:
-                    per_reaction[payload.message_id][count] = dict()
                     per_reaction[payload.message_id][count] = b64dec(line)
                     count+=1
                     if logging == "true":
                         with open("auto_log.txt", "a") as file:
-                            file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n")
+                            file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
             except:
                 pass
         decoded_embed = discord.Embed(title="Bitter decoded this to:",
                                        description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
                                        color=0x444444)
         await payload.member.send(embed=decoded_embed)
-        try:
-            per_reaction[payload.message_id]["usage"] += 1
-        except:
-            per_reaction[payload.message_id]["usage"] = dict()
-            per_reaction[payload.message_id]["usage"] = 1
+        per_reaction[payload.message_id]["usage"] = 1
         return
 
 client.run("Your Token")
