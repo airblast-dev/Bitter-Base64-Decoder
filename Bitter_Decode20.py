@@ -97,7 +97,7 @@ async def on_message(message):
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
                     emoji = emoji[1:]
                     emoji = str(count) + emoji
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)):
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                         await message.add_reaction(emoji)
                         if count == 1:
                             per_reaction[message.id] = {}
@@ -133,7 +133,7 @@ async def on_message(message):
                         ):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
-                            if len(b64dec(line)) > 4 and vdom(b64dec(line)):
+                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                                 if count == 1:
                                     per_reaction[message.id] = {}
                                 if b64dec(line).startswith("http://") or b64dec(
@@ -167,7 +167,7 @@ async def on_message(message):
                         ):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
-                            if len(b64dec(line)) > 4 and vdom(b64dec(line)):
+                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                                 if count == 1:
                                     per_reaction[message.id] = {}
                                 if b64dec(line).startswith("http://") or b64dec(
@@ -277,7 +277,7 @@ async def on_raw_reaction_add(payload):
                 line = line["value"]
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)):
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                         await message.add_reaction(
                             emoji
                         )  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
@@ -313,7 +313,7 @@ async def on_raw_reaction_add(payload):
             for line in embed_dict["description"].split():
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)):
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                         await message.add_reaction(
                             emoji
                         )  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
@@ -350,10 +350,7 @@ async def on_raw_reaction_add(payload):
             except:
                 pass
             try:
-                if (
-                    line.replace("=", "") == b64enc(b64dec(line)).replace("=", "")
-                    and len(b64dec(line)) > 15
-                ):
+                if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
                     per_reaction[payload.message_id][count] = b64dec(line)
                     count += 1
                     if logging == "true":
