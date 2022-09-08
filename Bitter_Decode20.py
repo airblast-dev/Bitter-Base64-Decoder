@@ -360,7 +360,14 @@ async def on_raw_reaction_add(payload):
                 pass
             try:
                 if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
-                    per_reaction[payload.message_id][count] = b64dec(line)
+                        if b64dec(line).startswith("https://") or b64dec(
+                            line
+                        ).startswith("http://"):
+                            per_reaction[payload.message_id][
+                                count
+                            ] = b64dec(line)
+                        else:
+                            per_reaction[payload.message_id][count] = "http://" + b64dec(line)
                     count += 1
                     if logging == "true":
                         with open("auto_log.txt", "a") as file:
