@@ -2,6 +2,8 @@ import discord
 import base64
 from datetime import datetime
 from validators import domain as vdom
+from validators import url as vurl
+
 
 rezi_support = input(f"Type 'yes' to enable Rezi Bot support: ").lower()
 cove_bot_support = input(f"Type 'yes' to enable Cove Bot support: ").lower()
@@ -97,11 +99,18 @@ async def on_message(message):
                 if line.replace("=", "") == b64enc(b64dec(line)).replace("=", ""):
                     emoji = emoji[1:]
                     emoji = str(count) + emoji
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
                         await message.add_reaction(emoji)
                         if count == 1:
                             per_reaction[message.id] = {}
-                        per_reaction[message.id][count] = b64dec(line)
+                        if b64dec(line).startswith("http://") or b64dec(
+                                line
+                        ).startswith("https://"):
+                            per_reaction[message.id][count] = b64dec(line)
+                        else:
+                            per_reaction[message.id][
+                                count
+                            ] = "http://" + b64dec(line)
                         per_reaction[message.id]["usage"] = 0
                         count += 1
             except:
@@ -133,7 +142,7 @@ async def on_message(message):
                         ):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
-                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
                                 if count == 1:
                                     per_reaction[message.id] = {}
                                 if b64dec(line).startswith("http://") or b64dec(
@@ -167,17 +176,17 @@ async def on_message(message):
                         ):
                             emoji = emoji[1:]
                             emoji = str(count) + emoji
-                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                            if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)) :
                                 if count == 1:
                                     per_reaction[message.id] = {}
-                                if b64dec(line).startswith("http://") or b64dec(
-                                    line
-                                ).startswith("https://"):
-                                    per_reaction[message.id][count] = b64dec(line)
-                                else:
+                                if b64dec(line).startswith("https://") or b64dec(
+                                        line
+                                ).startswith("http://"):
                                     per_reaction[message.id][
                                         count
-                                    ] = "http://" + b64dec(line)
+                                    ] = b64dec(line)
+                                else:
+                                    per_reaction[message.id][count] = "http://" + b64dec(line)
                                 per_reaction[message.id]["usage"] = 0
                                 count += 1
                                 await message.add_reaction(emoji)
@@ -277,7 +286,7 @@ async def on_raw_reaction_add(payload):
                 line = line["value"]
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
                         await message.add_reaction(
                             emoji
                         )  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
@@ -286,9 +295,9 @@ async def on_raw_reaction_add(payload):
                         ).startswith("http://"):
                             per_reaction[payload.message_id][
                                 count
-                            ] = "http://" + b64dec(line)
+                            ] = b64dec(line)
                         else:
-                            per_reaction[payload.message_id][count] = b64dec(line)
+                            per_reaction[payload.message_id][count] = "http://" + b64dec(line)
                         count += 1
             decoded_embed = discord.Embed(
                 title="Bitter decoded this to:",
@@ -313,7 +322,7 @@ async def on_raw_reaction_add(payload):
             for line in embed_dict["description"].split():
                 if line == b64enc(b64dec(line)):
                     emoji = str(count) + "️⃣"
-                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                    if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
                         await message.add_reaction(
                             emoji
                         )  # Rezi Bot usually doesn't store links without the "https://" part ,so they aren't clickable in DM's.
@@ -350,7 +359,7 @@ async def on_raw_reaction_add(payload):
             except:
                 pass
             try:
-                if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) :
+                if len(b64dec(line)) > 4 and vdom(b64dec(line)) or vurl(b64dec(line)) or vurl("https://"+b64dec(line)):
                     per_reaction[payload.message_id][count] = b64dec(line)
                     count += 1
                     if logging == "true":
