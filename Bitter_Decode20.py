@@ -228,7 +228,8 @@ async def on_raw_reaction_add(payload):
         decoded_embed = discord.Embed(title="Bitter decoded this to:", description=per_reaction[payload.message_id][int(payload.emoji.name[0])], color=0x444444)
         await payload.member.send(embed=decoded_embed)
         if logging == "true":
-            open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
+            with open("auto_log.txt", "a") as file:
+                file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n")
         try:
             per_reaction[payload.message_id]["usage"] += 1
         except:
@@ -312,7 +313,8 @@ async def on_raw_reaction_add(payload):
                     per_reaction[payload.message_id][count] = b64dec(line)
                     count+=1
                     if logging == "true":
-                        open("auto_log.txt", "a").write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n")
+                        with open("auto_log.txt", "a") as file:
+                            file.write(f"{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n")
             except:
                 pass
         decoded_embed = discord.Embed(title="Bitter decoded this to:",
