@@ -38,13 +38,15 @@ You are ready to run Bitter!
 ### Parameters
 Once you start the bot you will be asked a few questions.
 
-1# First question will be Rezi Bot Support: if you intend to use it with Rezi Bot just respond with 'yes', if not leave it blank.
+1# First question will be Rezi Bot Support: If you intend to use it with Rezi Bot just respond with 'yes', if not leave it blank.
 
-2# 'Soft cache limit' needs a little explaining: The bot will try to stay under this limit. Allthough it's very hard, the limit can technicaly be passed. Once the soft cache limit is reached it will calculate the average reaction usage of all message's. Message's under the average usage will get removed from the cache. If you set 0 it will disable soft caching with the exception of the last message that was reacted to.
+2# Second question will be support for Cove Bot: If you intend to use it with Cove Bot just respond with 'yes', if not leave it blank.
 
-3# 'Hard cache limit' is pretty straight forward: Once this limit is met. Half of the current cache will get removed. I recommend setting this a higher value than the 'Soft cache limit'. If you set 0 it will disable hard caching with the exception of the last message that was reacted to.
+3# 'Soft cache limit' needs a little explaining: The bot will try to stay under this limit. Allthough it's very hard, the limit can technicaly be passed. Once the soft cache limit is reached it will calculate the average reaction usage of all message's. Message's under the average usage will get removed from the cache. If you set 0 it will disable soft caching with the exception of the last message that was reacted to.
 
-4# 'Logging': If you want to enable logging type in 'yes'. Enabling logging will create a file called auto_log.txt. In this file the message itself will be stored along with time and date.
+4# 'Hard cache limit' is pretty straight forward: Once this limit is met. Half of the current cache will get removed. I recommend setting this a higher value than the 'Soft cache limit'. If you set 0 it will disable hard caching with the exception of the last message that was reacted to.
+
+5# 'Logging': If you want to enable logging type in 'yes'. Enabling logging will create a file called auto_log.txt. In this file the message itself will be stored along with time and date.
 
 ### Final Notes
 When the bot is running you can see if the reaction/messsage you used is in the cache or not. The program will tell you if the last usage was in the cache.
