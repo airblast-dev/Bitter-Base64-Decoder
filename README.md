@@ -1,3 +1,4 @@
+# This is not up to date!!
 # Bitter-Base64-Decoder
 ## What does Bitter! do ?
 Bitter! is a discord bot that will read and detect base64 strings. For every base64 string it detects, it will add a numbered reaction.
