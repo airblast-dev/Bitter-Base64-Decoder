@@ -11,6 +11,22 @@ per_reaction = dict()
 now = str(datetime.now())
 
 
+def dict_search(x):
+    y = list()
+    def dict_search_u(x):
+        if type(x) == dict:
+            for k, v in x.items():
+                if isinstance(v, dict):
+                    dict_search_u(v)
+                elif isinstance(v, list):
+                    for item in v:
+                        dict_search_u(item)
+                else:
+                    y.append(v)
+    dict_search_u(x)
+    return y
+
+
 def b64dec(x):
     return (base64.b64decode(x + '==')).decode('ascii')
 
@@ -23,31 +39,15 @@ def b64enc(x):
 async def on_message(message):
     words, worde = list(), list()
     counter = 0
-    if str(message.author) != 'Rezi#8393' and str(message.author) != 'CoveBot#6047':  # User messages
+    if len(message.embeds) == 0:  # User messages
         for word in message.content.split():
             worde.append(word)
-    elif str(message.author) == 'Rezi#8393':  # ReziBot support
+    else: # All Embed Messages from Bots
         for embed in message.embeds:
             embed_dict = embed.to_dict()
-            nums = range(0, len(embed_dict['fields']))
-            for num in nums:
-                if 'fields' in embed_dict \
-                        and isinstance(embed_dict['fields'][num], dict) \
-                        and 'value' in embed_dict['fields'][num]:
-                    worde.append(embed_dict['fields'][num]['value'])
-                else:
-                    continue
-    elif str(message.author) == 'CoveBot#6047':  # CoveBot support
-        for embed in message.embeds:
-            embed_dict = embed.to_dict()
-            if 'fields' in embed_dict \
-                    and isinstance(embed_dict['fields'][6], dict) \
-                    and 'value' in embed_dict['fields'][6]:
-                worde = [x for x in embed_dict['fields'][6]['value'].split()]
-            elif 'description' in embed_dict:
-                worde = [x for x in embed_dict['description'].split()]
-            else:
-                continue
+            worde = (dict_search(embed_dict))
+    if counter:
+        return
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -57,9 +57,9 @@ async def on_message(message):
                 counter += 1
         except:
             continue
-    emoji = '1️⃣'
     if counter:
         per_reaction[message.id] = dict()
+    emoji = '1️⃣'
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
@@ -70,7 +70,6 @@ async def on_message(message):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    print(per_reaction)
     if str(client.user) == str(payload.member) or payload.emoji.name[1:] != '️⃣':
         return
     if payload.message_id in per_reaction:
@@ -83,34 +82,16 @@ async def on_raw_reaction_add(payload):
         return
     channel = await client.fetch_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
-    per_reaction[payload.message_id] = dict()
     words, worde = list(), list()
     counter = 0
-    if str(message.author) != 'Rezi#8393' and str(message.author) != 'CoveBot#6047':  # User messages
+    if len(message.embeds) == 0:  # User messages
         for word in message.content.split():
             worde.append(word)
-    elif str(message.author) == 'Rezi#8393':  # ReziBot support
+    ###
+    else: # All Embed Messages from Bots
         for embed in message.embeds:
             embed_dict = embed.to_dict()
-            nums = range(0, len(embed_dict['fields']))
-            for num in nums:
-                if 'fields' in embed_dict \
-                        and isinstance(embed_dict['fields'][num], dict) \
-                        and 'value' in embed_dict['fields'][num]:
-                    worde.append(embed_dict['fields'][num]['value'])
-                else:
-                    continue
-    elif str(message.author) == 'CoveBot#6047':  # CoveBot support
-        for embed in message.embeds:
-            embed_dict = embed.to_dict()
-            if 'fields' in embed_dict \
-                    and isinstance(embed_dict['fields'][6], dict) \
-                    and 'value' in embed_dict['fields'][6]:
-                worde = [x for x in embed_dict['fields'][6]['value'].split()]
-            elif 'description' in embed_dict:
-                worde = [x for x in embed_dict['description'].split()]
-            else:
-                continue
+            worde = dict_search(embed_dict)
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -120,9 +101,11 @@ async def on_raw_reaction_add(payload):
                 counter += 1
         except:
             continue
-    emoji = '1️⃣'
     if counter:
         per_reaction[payload.message_id] = dict()
+    else:
+        return
+    emoji = '1️⃣'
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
