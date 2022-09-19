@@ -49,8 +49,6 @@ async def on_message(message):
                 worde = [x for x in embed_dict['description'].split()]
             else:
                 continue
-    if counter:
-        return
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -61,6 +59,8 @@ async def on_message(message):
         except:
             continue
     emoji = '1️⃣'
+    if counter:
+        per_reaction[message.id] = dict()
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
@@ -112,8 +112,6 @@ async def on_raw_reaction_add(payload):
                 worde = [x for x in embed_dict['description'].split()]
             else:
                 continue
-    if counter:
-        return
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -124,6 +122,8 @@ async def on_raw_reaction_add(payload):
         except:
             continue
     emoji = '1️⃣'
+    if counter:
+        per_reaction[payload.message_id] = dict()
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
