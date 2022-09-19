@@ -21,7 +21,6 @@ def b64enc(x):
 
 @client.event
 async def on_message(message):
-    per_reaction[message.id] = dict()
     words, worde = list(), list()
     counter = 0
     if str(message.author) != 'Rezi#8393' and str(message.author) != 'CoveBot#6047':  # User messages
@@ -140,5 +139,5 @@ async def on_raw_reaction_add(payload):
         file.write(
             f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
         )
-
+    print(per_reaction)
 client.run('Your Token')
