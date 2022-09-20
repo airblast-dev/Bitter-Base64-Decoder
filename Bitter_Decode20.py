@@ -49,10 +49,19 @@ async def on_message(message):
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
-                    b64enc(word := b64dec(word.replace('`', ''))).replace('=', '') \
-                    and vurl(word) or vurl(word := 'https://' + word):
-                words.append(word)
-                counter += 1
+                    b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
+                if vurl(word):
+                    words.append(word)
+                    counter += 1
+                elif vurl('https://' + word):
+                    words.append('https://' + word)
+                    counter += 1
+                elif len((word := word.split())) > 1:
+                    for item in word:
+                        print(vurl(item))
+                        if vurl(item) or vurl(item := 'https://' + item):
+                            counter += 1
+                            words.append(item)
         except:
             continue
     if counter:
@@ -90,16 +99,26 @@ async def on_raw_reaction_add(payload):
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
-                    b64enc(word := b64dec(word.replace('`', ''))).replace('=', '') \
-                    and vurl(word) or vurl(word := 'https://' + word):
-                words.append(word)
-                counter += 1
+                    b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
+                if vurl(word):
+                    words.append(word)
+                    counter += 1
+                elif vurl('https://' + word):
+                    words.append('https://' + word)
+                    counter += 1
+                elif len((word := word.split())) > 1:
+                    for item in word:
+                        print(vurl(item))
+                        if vurl(item) or vurl(item := 'https://' + item):
+                            counter += 1
+                            words.append(item)
         except:
             continue
     if counter:
         per_reaction[payload.message_id] = dict()
     else:
         return
+    print(words)
     emoji = '1️⃣'
     counter = 1
     for word in words:
