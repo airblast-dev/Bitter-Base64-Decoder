@@ -40,12 +40,10 @@ async def on_message(message):
     words, worde = list(), list()
     counter = 0
     if len(message.embeds) == 0:  # User messages
-        for word in message.content.split():
-            worde.append(word)
-    else: # All Embed Messages from Bots
+        worde = message.content.split()
+    else:  # All Embed Messages from Bots
         for embed in message.embeds:
-            embed_dict = embed.to_dict()
-            worde = (dict_search(embed_dict))
+            worde += (dict_search(embed.to_dict()))
     if counter:
         return
     for word in worde:
@@ -85,13 +83,10 @@ async def on_raw_reaction_add(payload):
     words, worde = list(), list()
     counter = 0
     if len(message.embeds) == 0:  # User messages
-        for word in message.content.split():
-            worde.append(word)
-    ###
-    else: # All Embed Messages from Bots
+        worde = message.content.split()
+    else:  # All Embed Messages from Bots
         for embed in message.embeds:
-            embed_dict = embed.to_dict()
-            worde = dict_search(embed_dict)
+            worde += (dict_search(embed.to_dict()))
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
