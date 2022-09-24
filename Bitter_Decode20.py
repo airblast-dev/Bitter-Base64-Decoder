@@ -8,7 +8,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 per_reaction = dict()
-now = str(datetime.now())
+now = str(datetime.now()).replace(':', '.')
 
 
 def dict_search(x):
