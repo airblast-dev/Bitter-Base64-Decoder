@@ -88,7 +88,7 @@ async def on_raw_reaction_add(payload):
         await payload.member.send(embed=decoded_embed)
         with open('auto_log.txt', 'a') as file:
             file.write(
-                f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{payload.member}:{now}\n'
+                f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
             )
         return
     channel = await client.fetch_channel(payload.channel_id)
