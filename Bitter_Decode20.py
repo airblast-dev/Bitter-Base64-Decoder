@@ -1,18 +1,19 @@
 import discord
+from discord import app_commands
 import base64
 from validators import url as vurl
 from datetime import datetime
-
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 per_reaction = dict()
-now = str(datetime.now()).replace(':', '.')
+tree = app_commands.CommandTree(client)
 
 
 def dict_search(x):
     y = list()
+
     def dict_search_u(x):
         if type(x) == dict:
             for k, v in x.items():
@@ -23,6 +24,7 @@ def dict_search(x):
                         dict_search_u(item)
                 else:
                     y.append(v)
+
     dict_search_u(x)
     return y
 
@@ -36,6 +38,50 @@ def b64enc(x):
 
 
 @client.event
+async def on_ready():
+    await tree.sync()
+
+
+@tree.context_menu(name='FindB64')
+async def findb64(interaction: discord.Interaction, message: discord.Message):
+    words, worde = list(), list()
+    counter = 0
+    if len(message.embeds) == 0:  # User messages
+        worde = message.content.split()
+    else:  # All Embed Messages from Bots
+        for embed in message.embeds:
+            worde += (dict_search(embed.to_dict()))
+    for word in worde:
+        try:
+            if word.replace('=', '').replace('`', '') == \
+                    b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
+                if len(word) >= 6:
+                    counter += 1
+                    words.append(word)
+        except:
+            continue
+    if counter:
+        per_reaction[message.id] = dict()
+    emoji = '1️⃣'
+    counter = 1
+    for word in words:
+        per_reaction[message.id][counter] = word
+        await message.add_reaction(emoji)
+        counter += 1
+        emoji = str(counter) + emoji[1:]
+    if len(words):
+        int_response = discord.Embed(
+            description=f'Bitter was able to find {len(words)} encoded messages.',
+            color=0x444444,
+        )
+    else:
+        int_response = discord.Embed(
+            description=f'Bitter wasnt able to find any encoded messages.',
+            color=0x444444,
+        )
+    await interaction.response.send_message(embed=int_response, ephemeral=True)
+
+@client.event
 async def on_message(message):
     words, worde = list(), list()
     counter = 0
@@ -44,8 +90,6 @@ async def on_message(message):
     else:  # All Embed Messages from Bots
         for embed in message.embeds:
             worde += (dict_search(embed.to_dict()))
-    if counter:
-        return
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -58,7 +102,6 @@ async def on_message(message):
                     counter += 1
                 elif len((word := word.split())) > 1:
                     for item in word:
-                        print(vurl(item))
                         if vurl(item) or vurl(item := 'https://' + item):
                             counter += 1
                             words.append(item)
@@ -87,6 +130,7 @@ async def on_raw_reaction_add(payload):
         )
         await payload.member.send(embed=decoded_embed)
         with open('auto_log.txt', 'a') as file:
+            now = str(datetime.now()).replace(':', '.')
             file.write(
                 f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
             )
@@ -112,7 +156,6 @@ async def on_raw_reaction_add(payload):
                     counter += 1
                 elif len((word := word.split())) > 1:
                     for item in word:
-                        print(vurl(item))
                         if vurl(item) or vurl(item := 'https://' + item):
                             counter += 1
                             words.append(item)
@@ -122,7 +165,6 @@ async def on_raw_reaction_add(payload):
         per_reaction[payload.message_id] = dict()
     else:
         return
-    print(words)
     emoji = '1️⃣'
     counter = 1
     for word in words:
@@ -137,8 +179,11 @@ async def on_raw_reaction_add(payload):
     )
     await payload.member.send(embed=decoded_embed)
     with open('auto_log.txt', 'a') as file:
+        now = str(datetime.now()).replace(':', '.')
         file.write(
             f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
         )
     print(per_reaction)
+
+
 client.run('Your Token')
