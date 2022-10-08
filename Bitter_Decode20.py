@@ -39,6 +39,16 @@ def b64enc(x):
 
 @client.event
 async def on_ready():
+    open('cache.txt', 'a').close()
+    with open('cache.txt', 'r') as file:
+        for line in file:
+            line = line.split(':', 2)
+            line[2] = line[2].replace('\\n','\n').replace('\\r','')
+            intl = int(line[0])
+            if int(line[1]) == 1:
+                per_reaction[intl] = dict()
+            per_reaction[intl][int(line[1])] = line[2]
+        print(per_reaction)
     await tree.sync()
 
 
@@ -46,10 +56,8 @@ async def on_ready():
 async def findb64(interaction: discord.Interaction, message: discord.Message):
     words, worde = list(), list()
     counter = 0
-    if len(message.embeds) == 0:  # User messages
-        worde = message.content.split()
-    else:  # All Embed Messages from Bots
-        for embed in message.embeds:
+    worde = message.content.split()
+    for embed in message.embeds:
             worde += (dict_search(embed.to_dict()))
     for word in worde:
         try:
@@ -57,9 +65,17 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
                 if len(word) >= 6:
                     counter += 1
+                    with open('cache.txt', 'a') as file:
+                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
+                    with open('auto_log.txt', 'a') as file:
+                        now = str(datetime.now()).replace(':', '.')
+                        file.write(
+                            f'{per_reaction[payload.message_id][counter]}:{now}\n'
+                        )
                     words.append(word)
         except:
             continue
+
     if counter:
         per_reaction[message.id] = dict()
     emoji = '1️⃣'
@@ -83,13 +99,13 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
 
 @client.event
 async def on_message(message):
+    if message.id in per_reaction:
+        return
     words, worde = list(), list()
     counter = 0
-    if len(message.embeds) == 0:  # User messages
-        worde = message.content.split()
-    else:  # All Embed Messages from Bots
-        for embed in message.embeds:
-            worde += (dict_search(embed.to_dict()))
+    worde = message.content.split()
+    for embed in message.embeds:
+        worde += (dict_search(embed.to_dict()))
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -97,13 +113,19 @@ async def on_message(message):
                 if vurl(word):
                     words.append(word)
                     counter += 1
+                    with open('cache.txt', 'a') as file:
+                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                 elif vurl('https://' + word):
                     words.append('https://' + word)
                     counter += 1
+                    with open('cache.txt', 'a') as file:
+                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                 elif len((word := word.split())) > 1:
                     for item in word:
                         if vurl(item) or vurl(item := 'https://' + item):
                             counter += 1
+                            with open('cache.txt', 'a') as file:
+                                file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                             words.append(item)
         except:
             continue
@@ -139,11 +161,9 @@ async def on_raw_reaction_add(payload):
     message = await channel.fetch_message(payload.message_id)
     words, worde = list(), list()
     counter = 0
-    if len(message.embeds) == 0:  # User messages
-        worde = message.content.split()
-    else:  # All Embed Messages from Bots
-        for embed in message.embeds:
-            worde += (dict_search(embed.to_dict()))
+    worde = message.content.split()
+    for embed in message.embeds:
+        worde += (dict_search(embed.to_dict()))
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -151,13 +171,19 @@ async def on_raw_reaction_add(payload):
                 if vurl(word):
                     words.append(word)
                     counter += 1
+                    with open('cache.txt', 'a') as file:
+                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                 elif vurl('https://' + word):
                     words.append('https://' + word)
                     counter += 1
+                    with open('cache.txt', 'a') as file:
+                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                 elif len((word := word.split())) > 1:
                     for item in word:
                         if vurl(item) or vurl(item := 'https://' + item):
                             counter += 1
+                            with open('cache.txt', 'a') as file:
+                                file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
                             words.append(item)
         except:
             continue
