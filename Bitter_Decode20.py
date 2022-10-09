@@ -48,8 +48,8 @@ async def on_ready():
             if int(line[1]) == 1:
                 per_reaction[intl] = dict()
             per_reaction[intl][int(line[1])] = line[2]
-        print(per_reaction)
     await tree.sync()
+    print(f'Bot has been fully started.')
 
 
 @tree.context_menu(name='FindB64')
@@ -64,6 +64,7 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
                 if len(word) >= 6:
+                    words.append(word)
                     counter += 1
                     with open('cache.txt', 'a') as file:
                         file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
@@ -72,10 +73,8 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
                         file.write(
                             f'{per_reaction[payload.message_id][counter]}:{now}\n'
                         )
-                    words.append(word)
         except:
             continue
-
     if counter:
         per_reaction[message.id] = dict()
     emoji = '1️⃣'
