@@ -1,8 +1,8 @@
+import binascii
 import discord
 from discord import app_commands
 import base64
 from validators import url as vurl
-from datetime import datetime
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -11,12 +11,12 @@ per_reaction = dict()
 tree = app_commands.CommandTree(client)
 
 
-def dict_search(x):
+def dict_search(x):  # This is only used for dictionary looping for embedded messages by users or bots
     y = list()
 
-    def dict_search_u(x):
-        if type(x) == dict:
-            for k, v in x.items():
+    def dict_search_u(a):
+        if type(a) == dict:
+            for k, v in a.items():
                 if isinstance(v, dict):
                     dict_search_u(v)
                 elif isinstance(v, list):
@@ -39,26 +39,56 @@ def b64enc(x):
 
 @client.event
 async def on_ready():
+    open('usage.txt', 'a').close()
     open('cache.txt', 'a').close()
     with open('cache.txt', 'r') as file:
         for line in file:
             line = line.split(':', 2)
-            line[2] = line[2].replace('\\n','\n').replace('\\r','')
+            line[2] = line[2].replace('\\n', '\n').replace('\\r', '')
             intl = int(line[0])
-            if int(line[1]) == 1:
+            if intl not in per_reaction:
                 per_reaction[intl] = dict()
             per_reaction[intl][int(line[1])] = line[2]
     await tree.sync()
+    print(per_reaction)
     print(f'Bot has been fully started.')
+
+
+@tree.command(name='encodeb')
+async def encodebcmd(interaction: discord.Interaction, param: str):
+    encoded = b64enc(param)
+    discord_response = discord.Embed(description=f'{interaction.user} has encoded: {encoded}')
+    await interaction.response.send_message(embed=discord_response)
+
+
+@tree.command(name='usageb', description='Sends the current number of total uses for Bitter.')
+async def usagecmd(interaction: discord.Interaction):
+    usage = open('usage.txt', 'r').read()
+    discord_response = discord.Embed(title=f'Bitter has been used {usage} times.')
+    await interaction.response.send_message(embed=discord_response, ephemeral=True)
 
 
 @tree.context_menu(name='FindB64')
 async def findb64(interaction: discord.Interaction, message: discord.Message):
-    words, worde = list(), list()
-    counter = 0
+    words, worde, words = list(), list(), list()
+    counter, counterrem = 1, 1 
+    emoji = '1️⃣'
     worde = message.content.split()
+    with open('usage.txt', 'r') as file:
+        usage = int(file.read())
+        usage += 1
+        file = open('usage.txt', 'w')
+        file.write(str(usage))
+        file.close()
     for embed in message.embeds:
-            worde += (dict_search(embed.to_dict()))
+        for item in (dict_search(embed.to_dict())):
+            if type(item) != str:
+                continue
+            if len(item.split()) > 1:
+                for word in item.split():
+                    worde.append(word)
+            else:
+                worde.append(item)
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
@@ -68,22 +98,8 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
                     counter += 1
                     with open('cache.txt', 'a') as file:
                         file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                    with open('auto_log.txt', 'a') as file:
-                        now = str(datetime.now()).replace(':', '.')
-                        file.write(
-                            f'{per_reaction[payload.message_id][counter]}:{now}\n'
-                        )
-        except:
+        except (UnicodeEncodeError, UnicodeDecodeError, AttributeError, binascii.Error, ValueError):
             continue
-    if counter:
-        per_reaction[message.id] = dict()
-    emoji = '1️⃣'
-    counter = 1
-    for word in words:
-        per_reaction[message.id][counter] = word
-        await message.add_reaction(emoji)
-        counter += 1
-        emoji = str(counter) + emoji[1:]
     if len(words):
         int_response = discord.Embed(
             description=f'Bitter was able to find {len(words)} encoded messages.',
@@ -91,43 +107,60 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
         )
     else:
         int_response = discord.Embed(
-            description=f'Bitter wasnt able to find any encoded messages.',
+            description=f'Bitter wasn\'t able to find any encoded messages.',
             color=0x444444,
         )
     await interaction.response.send_message(embed=int_response, ephemeral=True)
+    if message.id in per_reaction:
+        for counterrem in range(counter, len(per_reaction[message.id]) + 1):
+            emoji = str(counterrem) + emoji[1:]
+            await message.clear_reaction(emoji)
+            counterrem += 1
+    per_reaction[message.id] = dict()
+    counter = 1
+    for word in words:
+        per_reaction[message.id][counter] = word
+        emoji = str(counter) + emoji[1:]
+        await message.add_reaction(emoji)
+        counter += 1
+    with open('usage.txt', 'r') as file:
+        usage = int(file.read())
+        usage += 1
+        file = open('usage.txt', 'w')
+        file.write(str(usage))
+
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     if message.id in per_reaction:
         return
     words, worde = list(), list()
     counter = 0
     worde = message.content.split()
     for embed in message.embeds:
-        worde += (dict_search(embed.to_dict()))
+        for item in (dict_search(embed.to_dict())):
+            if type(item) != str:
+                continue
+            if len(item.split()) > 1:
+                for word in item.split():
+                    worde.append(word)
+            else:
+                worde.append(item)
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
-                if vurl(word):
-                    words.append(word)
-                    counter += 1
-                    with open('cache.txt', 'a') as file:
-                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                elif vurl('https://' + word):
-                    words.append('https://' + word)
-                    counter += 1
-                    with open('cache.txt', 'a') as file:
-                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                elif len((word := word.split())) > 1:
-                    for item in word:
-                        if vurl(item) or vurl(item := 'https://' + item):
+                if len((wordsp := word.split())) >= 1:
+                    for item in wordsp:
+                        if vurl(item) or vurl('https://' + item):
                             counter += 1
                             with open('cache.txt', 'a') as file:
                                 file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                            words.append(item)
-        except:
-            continue
+                            if counter:
+                                words += [word]
+                                break
+        except (UnicodeEncodeError, UnicodeDecodeError, AttributeError, binascii.Error, ValueError):
+            continue  # AttributeError for sticker and gifs and etcetera. The rest is for decode/encode related errors.
     if counter:
         per_reaction[message.id] = dict()
     emoji = '1️⃣'
@@ -141,49 +174,56 @@ async def on_message(message):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if str(client.user) == str(payload.member) or payload.emoji.name[1:] != '️⃣':
+    if str(client.user) == str(payload.member) or \
+            payload.emoji.name[1:] != '️⃣':  # Check if user that reacted is the bot itself.
         return
+    if payload.message_id in per_reaction and \
+            len(per_reaction[payload.message_id]) < int(payload.emoji.name[0:1]):
+        return
+    with open('usage.txt', 'r') as file:
+        usage = int(file.read())
+        usage += 1
+        file = open('usage.txt', 'w')
+        file.write(str(usage))
+        file.close()
     if payload.message_id in per_reaction:
         decoded_embed = discord.Embed(
             title='Bitter decoded this to:',
             description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
             color=0x444444,
         )
-        await payload.member.send(embed=decoded_embed)
-        with open('auto_log.txt', 'a') as file:
-            now = str(datetime.now()).replace(':', '.')
-            file.write(
-                f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
-            )
-        return
+        try:
+            await payload.member.send(embed=decoded_embed)
+            return
+        except discord.errors.Forbidden:
+            pass
     channel = await client.fetch_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
     words, worde = list(), list()
     counter = 0
     worde = message.content.split()
     for embed in message.embeds:
-        worde += (dict_search(embed.to_dict()))
+        for item in (dict_search(embed.to_dict())):
+            if type(item) != str:
+                continue
+            if len(item.split()) > 1:
+                for word in item.split():
+                    worde.append(word)
+            else:
+                worde.append(item)
     for word in worde:
         try:
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
-                if vurl(word):
-                    words.append(word)
-                    counter += 1
-                    with open('cache.txt', 'a') as file:
-                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                elif vurl('https://' + word):
-                    words.append('https://' + word)
-                    counter += 1
-                    with open('cache.txt', 'a') as file:
-                        file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                elif len((word := word.split())) > 1:
-                    for item in word:
-                        if vurl(item) or vurl(item := 'https://' + item):
+                if len((wordsp := word.split())) >= 1:
+                    for item in wordsp:
+                        if vurl(item) or vurl('https://' + item):
                             counter += 1
                             with open('cache.txt', 'a') as file:
                                 file.write(str(message.id) + ":" + str(counter) + ":" + repr(word)[1:-1] + '\n')
-                            words.append(item)
+                            if counter:
+                                words += [word]
+                                break
         except:
             continue
     if counter:
@@ -202,12 +242,10 @@ async def on_raw_reaction_add(payload):
         description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
         color=0x444444,
     )
-    await payload.member.send(embed=decoded_embed)
-    with open('auto_log.txt', 'a') as file:
-        now = str(datetime.now()).replace(':', '.')
-        file.write(
-            f'{per_reaction[payload.message_id][int(payload.emoji.name[0])]}:{now}\n'
-        )
+    try:
+        await payload.member.send(embed=decoded_embed)
+    except:
+        pass
     print(per_reaction)
 
 
