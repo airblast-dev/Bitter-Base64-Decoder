@@ -54,11 +54,11 @@ async def on_ready():
     print(f'Bot has been fully started.')
 
 
-@tree.command(name='encodeb')
+@tree.command(name='encodeb', description='Bitter will encode your message and send it in this channel.')
 async def encodebcmd(interaction: discord.Interaction, param: str):
-    encoded = b64enc(param)
-    discord_response = discord.Embed(description=f'{interaction.user} has encoded: {encoded}')
-    await interaction.response.send_message(embed=discord_response)
+    discord_response = discord.Embed(description=f'{interaction.user} has encoded: {b64enc(param)}')
+    await interaction.channel.send(embed=discord_response)
+    await interaction.response.send_message("Your message has been encoded.", ephemeral=True)
 
 
 @tree.command(name='usageb', description='Sends the current number of total uses for Bitter.')
@@ -71,7 +71,7 @@ async def usagecmd(interaction: discord.Interaction):
 @tree.context_menu(name='FindB64')
 async def findb64(interaction: discord.Interaction, message: discord.Message):
     words, worde, words = list(), list(), list()
-    counter, counterrem = 1, 1 
+    counter, counterrem = 0, 1
     emoji = '1️⃣'
     worde = message.content.split()
     with open('usage.txt', 'r') as file:
@@ -90,6 +90,8 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
             else:
                 worde.append(item)
     for word in worde:
+        if len(words) >= 9:
+            break
         try:
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
@@ -111,11 +113,9 @@ async def findb64(interaction: discord.Interaction, message: discord.Message):
             color=0x444444,
         )
     await interaction.response.send_message(embed=int_response, ephemeral=True)
-    if message.id in per_reaction:
-        for counterrem in range(counter, len(per_reaction[message.id]) + 1):
-            emoji = str(counterrem) + emoji[1:]
-            await message.clear_reaction(emoji)
-            counterrem += 1
+    for counterrem in reversed(range(counter + 1, len(per_reaction[message.id]) + 1)):
+        emoji = str(counterrem) + emoji[1:]
+        await message.clear_reaction(emoji)
     per_reaction[message.id] = dict()
     counter = 1
     for word in words:
@@ -147,6 +147,8 @@ async def on_message(message: discord.Message):
             else:
                 worde.append(item)
     for word in worde:
+        if len(words) >= 9:
+            break
         try:
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
@@ -167,13 +169,16 @@ async def on_message(message: discord.Message):
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
-        await message.add_reaction(emoji)
+        try:  # If the user has blocked the bot, suppress exception and return since bot cant add reaction anyway.
+            await message.add_reaction(emoji)
+        except:
+            return
         counter += 1
         emoji = str(counter) + emoji[1:]
 
 
 @client.event
-async def on_raw_reaction_add(payload):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if str(client.user) == str(payload.member) or \
             payload.emoji.name[1:] != '️⃣':  # Check if user that reacted is the bot itself.
         return
@@ -212,6 +217,8 @@ async def on_raw_reaction_add(payload):
             else:
                 worde.append(item)
     for word in worde:
+        if len(words) >= 9:
+            break
         try:
             if word.replace('=', '').replace('`', '') == \
                     b64enc(word := b64dec(word.replace('`', ''))).replace('=', ''):
@@ -224,7 +231,7 @@ async def on_raw_reaction_add(payload):
                             if counter:
                                 words += [word]
                                 break
-        except:
+        except (UnicodeEncodeError, UnicodeDecodeError, AttributeError, binascii.Error, ValueError):
             continue
     if counter:
         per_reaction[payload.message_id] = dict()
@@ -234,7 +241,10 @@ async def on_raw_reaction_add(payload):
     counter = 1
     for word in words:
         per_reaction[message.id][counter] = word
-        await message.add_reaction(emoji)
+        try:  # If the user has blocked the bot, suppress exception and return since bot cant add reaction anyway.
+            await message.add_reaction(emoji)
+        except:
+            return
         counter += 1
         emoji = str(counter) + emoji[1:]
     decoded_embed = discord.Embed(
@@ -242,7 +252,7 @@ async def on_raw_reaction_add(payload):
         description=per_reaction[payload.message_id][int(payload.emoji.name[0])],
         color=0x444444,
     )
-    try:
+    try:  # If user that clicked reaction has blocked the bot, suppress exception.
         await payload.member.send(embed=decoded_embed)
     except:
         pass
