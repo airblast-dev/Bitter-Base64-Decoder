@@ -41,7 +41,7 @@ If a detection is enabled and text is found alongside the enabled detection, cli
 ### Commands:
   
 #### /toggle
-The /toggle command will enable specific detections based on the user input. For example /toggle UrlB64 enable's detecting base64 encoded Url's. Using the command will enable it if was disabled and disable it if was enabled. Using the command will also send a current settings list. Currently the bot supports automatic TextB64 UrlB64 and MagnetB64 detection. By default Url detection is enabled and should work out of the box.
+The /toggle command will enable specific detections based on the user input. For example /toggle UrlB64 enable's detecting base64 encoded Url's. Using the command will enable it if was disabled and disable it if was enabled. Using the command will also send a current settings list. Currently the bot supports automatic TextB64 UrlB64 and MagnetB64 detection. By default Url detection is enabled and should work out of the box. Using this command requires the manager server permission. 
 
 ![image](https://user-images.githubusercontent.com/111659262/199736743-0ceb1bf7-8196-4d18-88cc-fb6cdc375f0d.png)
 ![image](https://user-images.githubusercontent.com/111659262/199736792-f3da2ae4-b795-444c-a4da-73eb2b1e88ca.png)
