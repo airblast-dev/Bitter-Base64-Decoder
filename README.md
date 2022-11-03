@@ -23,7 +23,51 @@ It will also work with multiple base64 string's in a single paragraph.
 ### Bot sent embed messages:
 All bot sent messages should get read including embed and such formats.
 
-## How do i use it ?
+### Edited messages:
+Edited messages will also get updates automatically and remove or add reactions if needed. Edited messages will only scan for enabled settings and update based off of current settings. If you want to update a message with content not enabled you should use FindB64 or temporarily toggle on whatever type you want to be found.
+
+![edit_example](https://user-images.githubusercontent.com/111659262/199730265-641d6339-d27d-4ad4-b145-4dbed5f2bd53.gif)
+
+![reation_update_example](https://user-images.githubusercontent.com/111659262/199742423-ae455236-5a74-4ab7-93c3-db1523de4944.gif)
+
+
+### Other supported formats:
+If a detection is enabled and text is found alongside the enabled detection, clicking the reaction will send you a decoded version of the whole base64 text. See example as below:
+
+![text_including_url_example](https://user-images.githubusercontent.com/111659262/199734416-2d1fed9f-54db-4a12-8bf8-b75bc83093d6.gif)
+
+## Commands and Applications:
+
+### Commands:
+  
+#### /toggle
+The /toggle command will enable specific detections based on the user input. For example /toggle UrlB64 enable's detecting base64 encoded Url's. Using the command will enable it if was disabled and disable it if was enabled. Using the command will also send a current settings list. Currently the bot supports automatic TextB64 UrlB64 and MagnetB64 detection. By default Url detection is enabled and should work out of the box.
+
+![image](https://user-images.githubusercontent.com/111659262/199736743-0ceb1bf7-8196-4d18-88cc-fb6cdc375f0d.png)
+![image](https://user-images.githubusercontent.com/111659262/199736792-f3da2ae4-b795-444c-a4da-73eb2b1e88ca.png)
+
+
+
+#### /encodeb
+The /encodeb command encode's any input and sends the result to the channel that the command was used in. The output will always be reacted by Bitter.
+
+![image](https://user-images.githubusercontent.com/111659262/199736691-fd86c6b2-13ff-4563-aefa-46db8a721c28.png)
+
+
+#### /usageb
+This command sends how many times Bitter has been used since November  1st.
+
+![image](https://user-images.githubusercontent.com/111659262/199736607-4bb9d4e9-0b67-49bf-bb36-a130f10f12f3.png)
+
+
+### Applications:
+
+#### FindB64:
+Using FindB64 on a message will force find any base64 content. 
+
+![image](https://user-images.githubusercontent.com/111659262/199736561-7ca16149-8c5a-409b-a4e3-2c89537f1043.png)
+
+
 ### Requirments
 Install python 3.10 and latest version of pip.
 
