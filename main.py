@@ -220,7 +220,7 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str=N
         return
 
     pfp = (interaction.user.guild_avatar if hasattr(interaction.user, "guild_avatar") else interaction.user.avatar)
-    pfp = pfp.url
+    pfp = pfp.url if hasattr(pfp, "url") else None
     author = f"{interaction.user.name}#{interaction.user.discriminator}"
     embed = Embed(description=encoded)
     embed.set_footer(icon_url=pfp, text=f"Encoded by {author}")
