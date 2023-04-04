@@ -264,9 +264,9 @@ async def help(interaction: Interaction):
     + f" and basE91 content detection based on the guilds settings. The bot currently supports text, urls and magnets."
     + f" By clicking on a reaction that was sent by {client.user.name} you will receive the content or contents from the original message in a decoded state.")
     help_response.add_field(name="/help", value="The /help command simply sends this message.", inline=False)
-    help_response.add_field(name="/encode", value=f"The /encode command can encode any string to ({encoding_choices}) depending on what you input."
+    help_response.add_field(name="/encode", value=f"The /encode command can encode any string to ({', '.join(Encodings.names)}) depending on what you input."
     + "If no option is selected the input will be encoded to Base64. The response from the bot will contain the original sender in the footer section.", inline=False)
-    help_response.add_field(name="/settings", value=f"The /settings command allows you to change detections for ({encoding_choices})."
+    help_response.add_field(name="/settings", value=f"The /settings command allows you to change detections for ({', '.join(Encodings.names)})."
     + " Once you enter the command you click on the buttons below the message it will enable/disable the detection." 
     + " Green means the setting is enabled and Red means its disabled.")
     help_response.add_field(name="Feedback or Suggestions", value="If you have any feedback or suggestions,"
