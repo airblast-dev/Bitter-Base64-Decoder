@@ -219,7 +219,7 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str=N
         await interaction.response.send_message(embed=embed, ephemeral=True)
         return
 
-    pfp = interaction.user.guild_avatar or interaction.user.avatar
+    pfp = (interaction.user.guild_avatar if hasattr(interaction.user, "guild_avatar") else interaction.user.avatar)
     pfp = pfp.url
     author = f"{interaction.user.name}#{interaction.user.discriminator}"
     embed = Embed(description=encoded)
