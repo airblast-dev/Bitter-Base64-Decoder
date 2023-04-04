@@ -1,7 +1,7 @@
 <div align="center">
 
 ## What does it do?
-Bitter detects and reacts to Base64 or basE91 encoded text, urls, magnets based on settings the server owner sets on discord. Once a user clicks on the reaction Bitter will DM them with the decoded version. It will also work with embed messages. The url and magnet link detection works so that it will react if it includes and url. See examples below.
+Bitter detects and reacts to Base64 or basE91 encoded text, urls, magnets based on settings the server owner sets on discord. Once a user clicks on the reaction Bitter will DM them with the decoded version. It will also work with embed messages. The url and magnet link detection works so that it will react if it includes an url. See examples below.
 
 ![Image](https://cdn.discordapp.com/attachments/1092806007866003476/1092826270317944862/basic_example.gif)
 
