@@ -277,9 +277,9 @@ async def help(interaction: Interaction):
 
 
 @client.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: Guild):
     db.add_guild(guild)
-    db.add_channel(guild.id, channel_id)
+    db.add_channels([guild])
     print("New guild added.")
 
 @client.event
