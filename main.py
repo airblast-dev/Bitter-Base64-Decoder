@@ -64,6 +64,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         message = await channel.fetch_message(payload.message_id)
         settings = db.get_guild_settings(payload.guild_id)
         content = check_all(extract_all(message), settings)
+        if len(content) == 0:
+            return
         guild_id = (message.guild.id if hasattr(message, "guild") and hasattr(message.guild, "id") else None)
         db.insert_content(
             guild_id, channel.id, message.id, content, message.jump_url
