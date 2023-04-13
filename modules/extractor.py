@@ -1,12 +1,12 @@
-from typing import List
+from typing import Generator
+from itertools import chain
 
 
-def extract_all(message) -> List[str]:
-    return normal_items(message.content) + embed_items(message.embeds)
+def extract_all(message) -> Generator:
+    return chain(normal_items(message.content), embed_items(message.embeds))
 
 
-def embed_items(embeds: list) -> list[str]:
-    content = []
+def embed_items(embeds: list) -> Generator:
     for embed in embeds:
         embed = embed.to_dict()
         #  The only reason we remove backticks is to avoid discords fancy message thing: `hello`
@@ -14,33 +14,30 @@ def embed_items(embeds: list) -> list[str]:
         if "title" in (keys := embed.keys()):
             for word in embed["title"].split(" "):
                 if word.startswith("`") and word.endswith("`"):
-                    content.append(word[1:-1])
-                content.append(word.replace("`", " "))
+                    yield (word[1:-1])
+                yield (word.replace("`", " "))
         if "description" in keys:
             for word in embed["description"].replace("\n", "").split(" "):
                 if word.startswith("`") and word.endswith("`"):
-                    content.append(word[1:-1])
-                content.append(word.replace("`", " "))
+                    yield (word[1:-1])
+                yield (word.replace("`", " "))
         if "fields" in keys:
             for field in embed["fields"]:
                 for word in field["name"].split(" "):
                     if word.startswith("`") and word.endswith("`"):
-                        content.append(word[1:-1])
-                    content.append(word.replace("`", " "))
+                        yield (word[1:-1])
+                    yield (word.replace("`", " "))
                 for word in field["value"].split(" "):
                     if word.startswith("`") and word.endswith("`"):
-                        content.append(word[1:-1])
-                    content.append(word.replace("`", " "))
-    return content
+                        yield (word[1:-1])
+                    yield (word.replace("`", " "))
 
 
-def normal_items(content: str) -> list[str]:
-    result = []
+def normal_items(content: str) -> Generator:
     for word in content.replace("\n", " ").split(" "):
         if word.startswith("`") and word.endswith("`"):
-            result.append(word[1:-1])
+            yield (word[1:-1])
         elif "`" in word:
-            result.append(word)
+            yield (word)
         else:
-            result.append(word.replace("`", " "))
-    return result
+            yield (word.replace("`", " "))
