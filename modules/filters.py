@@ -1,12 +1,11 @@
 import validators
 from typing import List
 
+
 class Filters:
     def check_content(self, decoded: list, settings: dict) -> List[str]:
         filtered = []
         for item in decoded:
-            if len(filtered) == 10:
-                break
             if settings["text"] is True and self._is_text(item):
                 filtered.append(item)
             elif settings["urls"] is True and self._is_url(item):
@@ -24,7 +23,7 @@ class Filters:
     def _is_url(self, i: str) -> bool:
         if validators.url(i) is True:
             return True
-        for item in i.replace('\n', " ").split(" "):
+        for item in i.replace("\n", " ").split(" "):
             if validators.url(item) is True:
                 return True
         return False
