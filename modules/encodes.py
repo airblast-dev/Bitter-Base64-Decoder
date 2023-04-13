@@ -1,23 +1,17 @@
 import base64
 import base91
 from modules.filters import Filters
-from typing import List, TypedDict
+from typing import List, TypedDict, Generator
 from modules.templates import Settings
 
 
-def check_all(content: List[str], settings: Settings) -> list:
+def check_all(content: Generator, settings: Settings) -> list:
     result = []
     if any(settings["Base64"][key] for key in settings["Base64"].keys()):
-        result += Base64.decode_list(content, settings["Base64"])
+        result += Base64.decode_mult(content, settings["Base64"])
     if any(settings["basE91"][key] for key in settings["basE91"].keys()):
-        result += BasE91.decode_list(content, settings["basE91"])
+        result += BasE91.decode_mult(content, settings["basE91"])
     return result[0:10]
-
-
-def in_url_list(func):
-    def inner(content: List[str], settings: Settings):
-        result = func(content, settings)
-        return [item for item in result if item in valid_urls]
 
 
 # Any list decoding should use this decorator as it will filter results based on settings and limit the result for 10 items.
@@ -39,9 +33,11 @@ class Base64:
             return None
 
     @list_control
-    def decode_list(content: List[str]) -> List[str]:
+    def decode_mult(content: Generator) -> List[str]:
         result = []
         for word in content:
+            if len(result) == 10:
+                break
             try:
                 result.append(base64.urlsafe_b64decode((word + "==").encode()).decode())
             except Exception:
@@ -72,9 +68,11 @@ class BasE91:
             return None
 
     @list_control
-    def decode_list(content: List[str]) -> List[str]:
+    def decode_mult(content: Generator) -> List[str]:
         result = []
         for word in content:
+            if len(result) == 10:
+                break
             try:
                 result.append(base91.decode(word).decode())
             except Exception:
