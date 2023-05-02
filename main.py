@@ -307,7 +307,9 @@ async def decode_message(interaction: Interaction, message: Message):
         interaction.user.id
     )
     await user.send(
-        embed=DecodeResponse(message_info["content"], message_info["jump_url"])
+        embed=DecodeResponse(
+            message_info["content"], message_info["jump_url"], ephemeral=True
+        )
     )
 
 
