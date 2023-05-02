@@ -8,7 +8,7 @@ from discord import (
     Interaction,
     Embed,
     Message,
-    Guild
+    Guild,
 )
 from dotenv import load_dotenv
 
@@ -39,6 +39,20 @@ encoding_choices = [
 
 db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
 
+
+class DecodeResponse(Embed):
+    def __init__(self, content: list[str], jump_url: str, index: int = -1):
+        super().__init__()
+        self.title = "Bitter decoded this to:"
+        if index == -1:
+            self.description = "\n".join(content)
+        else:
+            self.description = content[index]
+        self.add_field(
+            name="Original message:", value=f"[Click here]({jump_url})", inline=False
+        )
+
+
 async def update_reactions(old_len: int, new_len: int, message: discord.Message):
     if new_len > old_len:
         for emoji in Emoji.numbers[old_len:new_len]:
@@ -55,7 +69,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if payload.emoji.name not in Emoji.numbers or payload.user_id == client.user.id:
         return
     index = Emoji.numbers.index(payload.emoji.name)
-    message_info = db.find_content(payload.guild_id, payload.channel_id, payload.message_id)
+    message_info = db.find_content(
+        payload.guild_id, payload.channel_id, payload.message_id
+    )
     if message_info is None:
         print("Message was not in DB.")
         channel = client.get_channel(payload.channel_id) or await client.fetch_channel(
@@ -66,14 +82,13 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         content = check_all(extract_all(message), settings)
         if len(content) == 0:
             return
-        guild_id = (message.guild.id if hasattr(message, "guild") and hasattr(message.guild, "id") else None)
-        db.insert_content(
-            guild_id, channel.id, message.id, content, message.jump_url
+        guild_id = (
+            message.guild.id
+            if hasattr(message, "guild") and hasattr(message.guild, "id")
+            else None
         )
-        message_info = {
-            "content": content,
-            "jump_url": message.jump_url
-        }
+        db.insert_content(guild_id, channel.id, message.id, content, message.jump_url)
+        message_info = {"content": content, "jump_url": message.jump_url}
         if len(content) <= index:
             return
     else:
@@ -81,16 +96,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if len(message_info["content"]) <= index:
         return
     user = client.get_user(payload.user_id) or await client.fetch_user(payload.user_id)
-    embed = Embed(
-        title=f"Bitter decoded this to:",
-        description=f'{message_info["content"][index]}',
+    await user.send(
+        embed=DecodeResponse(message_info["content"], message_info["jump_url"], index)
     )
-    embed.add_field(
-        name="Original message:",
-        value=f'[click here]({message_info["jump_url"]})',
-        inline=False,
-    )
-    await user.send(embed=embed)
 
 
 @client.event
@@ -98,18 +106,23 @@ async def on_message(message: discord.Message):
     if isinstance(message.guild, Guild):
         settings = db.get_guild_settings(message.guild.id)
     else:
-        settings = {key:Encodings.complete[key]["default"] for key in Encodings.complete.keys()}
+        settings = {
+            key: Encodings.complete[key]["default"] for key in Encodings.complete.keys()
+        }
     content = check_all(extract_all(message), settings)
     if len(content) == 0:
         return
-    guild_id = (message.guild.id if hasattr(message, "guild") and hasattr(message.guild, "id") else None)
+    guild_id = (
+        message.guild.id
+        if hasattr(message, "guild") and hasattr(message.guild, "id")
+        else None
+    )
     db.insert_content(
         guild_id, message.channel.id, message.id, content, message.jump_url
     )
     # If count is zero no emoji's will be added.
     for emoji in Emoji.numbers[0 : len(content)]:
         await message.add_reaction(emoji)
-
 
 
 @tree.command(
@@ -121,6 +134,7 @@ async def settings(
     interaction: discord.Interaction, encoding: app_commands.Choice[str]
 ):
     encoding = encoding.value
+
     def refresh_settings_view(settings: Settings) -> ui.View:
         view = ui.View(timeout=180)
         for check in settings.keys():
@@ -161,6 +175,7 @@ async def settings(
         embed=embed, view=view, delete_after=300, ephemeral=True
     )
 
+
 @settings.error
 async def settings_error(interaction: Interaction, error):
     embed = Embed(title="Incorrect permissions", description=error)
@@ -182,7 +197,9 @@ async def on_raw_message_edit(payload: discord.RawMessageUpdateEvent):
     content = check_all(extract_all(message), settings)
     old_len = 0
     if len(content) == 0:
-        db.delete_content(payload.guild_id, payload.channel_id, payload.message_id, content)
+        db.delete_content(
+            payload.guild_id, payload.channel_id, payload.message_id, content
+        )
         message.reactions.reverse()
         for reaction in message.reactions:
             async for user in reaction.users():
@@ -196,19 +213,25 @@ async def on_raw_message_edit(payload: discord.RawMessageUpdateEvent):
                 if user.id == client.user.id and reaction.emoji in Emoji.numbers:
                     old_len += 1
                     break
-    guild_id = (message.guild.id if hasattr(message, "guild") and hasattr(message.guild, "id") else None)
-    result = db.edit_content(guild_id, channel.id, message.id, content, message.jump_url)
+    guild_id = (
+        message.guild.id
+        if hasattr(message, "guild") and hasattr(message.guild, "id")
+        else None
+    )
+    result = db.edit_content(
+        guild_id, channel.id, message.id, content, message.jump_url
+    )
     if result is False:
-        db.insert_content(guild_id, payload.channel_id, payload.message_id, content, message.jump_url)
+        db.insert_content(
+            guild_id, payload.channel_id, payload.message_id, content, message.jump_url
+        )
     new_len = len(content)
     await update_reactions(old_len=old_len, new_len=new_len, message=message)
 
 
-@tree.command(
-    name="encode", description="Encode an url or any other content."
-)
+@tree.command(name="encode", description="Encode an url or any other content.")
 @app_commands.choices(encoding=encoding_choices)
-async def encode(interaction: discord.Interaction, content: str, encoding: str=None):
+async def encode(interaction: discord.Interaction, content: str, encoding: str = None):
     if encoding is None:
         encoding = "Base64"
     encoded = operations[encoding].encode_str(content)
@@ -221,7 +244,11 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str=N
         await interaction.response.send_message(embed=embed, ephemeral=True)
         return
 
-    pfp = (interaction.user.guild_avatar if hasattr(interaction.user, "guild_avatar") else interaction.user.avatar)
+    pfp = (
+        interaction.user.guild_avatar
+        if hasattr(interaction.user, "guild_avatar")
+        else interaction.user.avatar
+    )
     pfp = pfp.url if hasattr(pfp, "url") else None
     author = f"{interaction.user.name}#{interaction.user.discriminator}"
     embed = Embed(description=encoded)
@@ -235,9 +262,14 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str=N
         ephemeral=True,
     )
     db.insert_content(
-        interaction.guild_id, interaction.channel.id, message.id, [content], message.jump_url
+        interaction.guild_id,
+        interaction.channel.id,
+        message.id,
+        [content],
+        message.jump_url,
     )
     await message.add_reaction(Emoji.numbers[0])
+
 
 @tree.context_menu(name="Refresh Detections")
 async def refresh(interaction: Interaction, message: Message):
@@ -250,31 +282,63 @@ async def refresh(interaction: Interaction, message: Message):
             if user == client.user and reaction.emoji in Emoji.numbers:
                 old_len += 1
     new_len = len(content)
-    guild_id = (message.guild.id if hasattr(message, "guild") and hasattr(message.guild, "id") else None)
-    edited = db.edit_content(guild_id, message.channel.id, message.id, content, message.jump_url)
+    guild_id = (
+        message.guild.id
+        if hasattr(message, "guild") and hasattr(message.guild, "id")
+        else None
+    )
+    edited = db.edit_content(
+        guild_id, message.channel.id, message.id, content, message.jump_url
+    )
     if edited is False:
-        db.insert_content(guild_id, message.channel.id, message.id, content, message.jump_url)
+        db.insert_content(
+            guild_id, message.channel.id, message.id, content, message.jump_url
+        )
     await update_reactions(old_len, new_len, message)
-    embed = Embed(title="Refresh completed", description="Refresh has been completed and reactions have been updated.")
+    embed = Embed(
+        title="Refresh completed",
+        description="Refresh has been completed and reactions have been updated.",
+    )
     embed.add_field(name="Old detections", value=str(old_len))
     embed.add_field(name="New detections", value=str(new_len))
     await interaction.followup.send(embed=embed, ephemeral=True)
 
+
 @tree.command(name="help", description=f"A plain ol help command.")
 async def help(interaction: Interaction):
-    help_response = Embed(title=f"Basics for {client.user.name}:", description=f"{client.user.name} is a bot that supports Base64"
-    + f" and basE91 content detection based on the guilds settings. The bot currently supports text, urls and magnets."
-    + f" By clicking on a reaction that was sent by {client.user.name} you will receive the content or contents from the original message in a decoded state.")
-    help_response.add_field(name="/help", value="The /help command simply sends this message.", inline=False)
-    help_response.add_field(name="/encode", value=f"The /encode command can encode any string to ({', '.join(Encodings.names)}) depending on what you input."
-    + "If no option is selected the input will be encoded to Base64. The response from the bot will contain the original sender in the footer section.", inline=False)
-    help_response.add_field(name="/settings", value=f"The /settings command allows you to change detections for ({', '.join(Encodings.names)})."
-    + " Once you enter the command you click on the buttons below the message it will enable/disable the detection." 
-    + " Green means the setting is enabled and Red means its disabled.")
-    help_response.add_field(name="Feedback or Suggestions", value="If you have any feedback or suggestions,"
-    + " feel free to create an issue on github or shoot me a DM.", inline=False)
-    help_response.add_field(name="Source Code", value="If you would like to see how it works in the background you can find the source code at: "
-    + "https://github.com/airblast-dev/Bitter-Base64-Decoder", inline=False)
+    help_response = Embed(
+        title=f"Basics for {client.user.name}:",
+        description=f"{client.user.name} is a bot that supports Base64"
+        + f" and basE91 content detection based on the guilds settings. The bot currently supports text, urls and magnets."
+        + f" By clicking on a reaction that was sent by {client.user.name} you will receive the content or contents from the original message in a decoded state.",
+    )
+    help_response.add_field(
+        name="/help", value="The /help command simply sends this message.", inline=False
+    )
+    help_response.add_field(
+        name="/encode",
+        value=f"The /encode command can encode any string to ({', '.join(Encodings.names)}) depending on what you input."
+        + "If no option is selected the input will be encoded to Base64. The response from the bot will contain the original sender in the footer section.",
+        inline=False,
+    )
+    help_response.add_field(
+        name="/settings",
+        value=f"The /settings command allows you to change detections for ({', '.join(Encodings.names)})."
+        + " Once you enter the command you click on the buttons below the message it will enable/disable the detection."
+        + " Green means the setting is enabled and Red means its disabled.",
+    )
+    help_response.add_field(
+        name="Feedback or Suggestions",
+        value="If you have any feedback or suggestions,"
+        + " feel free to create an issue on github or shoot me a DM.",
+        inline=False,
+    )
+    help_response.add_field(
+        name="Source Code",
+        value="If you would like to see how it works in the background you can find the source code at: "
+        + "https://github.com/airblast-dev/Bitter-Base64-Decoder",
+        inline=False,
+    )
     await interaction.response.send_message(embed=help_response, ephemeral=True)
 
 
@@ -284,20 +348,24 @@ async def on_guild_join(guild: Guild):
     db.add_channels([guild])
     print("New guild added.")
 
+
 @client.event
 async def on_guild_remove(guild):
     db.remove_guild(guild.id)
     print("Guild removed.")
+
 
 @client.event
 async def on_guild_channel_delete(channel):
     db.remove_channel(channel.guild.id, channel.id)
     print("Channel removed.")
 
+
 @client.event
 async def on_guild_channel_create(channel):
     db.add_channel(channel.guild.id, channel.id)
     print("Channel added.")
+
 
 @client.event
 async def on_ready():
@@ -305,7 +373,6 @@ async def on_ready():
     db.add_guilds(client.guilds)
     db.add_channels(client.guilds)
     print("Guilds added and Commands synced.")
-
 
 
 client.run(getenv("BOT_TOKEN"))
