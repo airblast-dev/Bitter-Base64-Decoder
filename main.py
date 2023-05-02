@@ -271,6 +271,46 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str =
     await message.add_reaction(Emoji.numbers[0])
 
 
+@tree.context_menu(name="Decode Message")
+async def decode_message(interaction: Interaction, message: Message):
+    await interaction.respose.defer(ephemeral=True)
+    message_info = db.find_content(
+        interaction.guild.id, interaction.channel.id, message.id
+    )
+    if message_info is None:
+        print("Message was not in DB.")
+        settings = db.get_guild_settings(message.guild.id)
+        content = check_all(extract_all(message), settings)
+        if len(content) == 0:
+            embed = Embed(
+                title=f"{client.user.name} was unable to find any encoded content",
+                description="If you believe this is an error please create an issue on github.",
+            )
+            await interaction.response.send_message(embed, ephemeral=True)
+            return
+        guild_id = (
+            message.guild.id
+            if hasattr(message, "guild") and hasattr(message.guild, "id")
+            else None
+        )
+        db.insert_content(
+            interaction.guild.id,
+            interaction.channel.id,
+            message.id,
+            content,
+            message.jump_url,
+        )
+        message_info = {"content": content, "jump_url": message.jump_url}
+    else:
+        print("Message ID was in DB.")
+    user = client.get_user(interaction.user.id) or client.fetch_user(
+        interaction.user.id
+    )
+    await user.send(
+        embed=DecodeResponse(message_info["content"], message_info["jump_url"])
+    )
+
+
 @tree.context_menu(name="Refresh Detections")
 async def refresh(interaction: Interaction, message: Message):
     await interaction.response.defer(ephemeral=True)
