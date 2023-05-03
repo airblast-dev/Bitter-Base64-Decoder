@@ -21,12 +21,12 @@ class MessageQueue(deque):
         self._message_thread: Thread = Thread(target=self._message_queue, daemon=True)
         self._message_thread.start()
 
-    def _send_message(self, user: User, embed: Embed, t: datetime) -> None:
+    def _send_message(self, user: User, embed: Embed, t: datetime) -> bool:
         """
-        Sends only messages that were supposed to be sent within the last 30 seconds. Older messages will be ignored.
+        Sends only messages that were supposed to be sent within the last 30 seconds.
         If sending the message was delayed for more than 30 seconds its just ignored. Rather than sending a message a minute late,
         its better to just send the newer ones as at least it can keep working for some people rather than to keep everyone waiting
-        for a possibly long amount time.
+        for a possibly long amount of time.
 
         I dont like this solution but i dont see another way.
 
@@ -37,7 +37,7 @@ class MessageQueue(deque):
         if t_delta.total_seconds() < 30:
             was_sent = True
             asyncio.run(user.send(embed=embed))
-        self.popleft()
+        (self.popleft())
         return was_sent
 
     def _message_queue(self):
@@ -47,7 +47,7 @@ class MessageQueue(deque):
                 was_sent = self._send_message(current[0], current[1], current[2])
                 if was_sent is True:
                     sleep(1.5)
-                self.high_load = i > 30
+                self.high_load = True if i > 20 and 
             sleep(0.01)
 
 
