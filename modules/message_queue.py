@@ -37,7 +37,7 @@ class MessageQueue(deque):
         if t_delta.total_seconds() < 30:
             was_sent = True
             asyncio.run(user.send(embed=embed))
-        (self.popleft())
+        self.popleft()
         return was_sent
 
     def _message_queue(self):
@@ -47,7 +47,7 @@ class MessageQueue(deque):
                 was_sent = self._send_message(current[0], current[1], current[2])
                 if was_sent is True:
                     sleep(1.5)
-                self.high_load = True if i > 20 and 
+                self.high_load = True if i > 20 else False
             sleep(0.01)
 
 
