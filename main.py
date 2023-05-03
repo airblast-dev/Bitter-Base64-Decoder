@@ -100,7 +100,11 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if len(message_info["content"]) <= index:
         return
     user = client.get_user(payload.user_id) or await client.fetch_user(payload.user_id)
-    queue.append(user, DecodeResponse(message_info["content"], message_info["jump_url"], index), datetime.now())
+    queue.append(
+        user,
+        DecodeResponse(message_info["content"], message_info["jump_url"], index),
+        datetime.now(),
+    )
 
 
 @client.event
