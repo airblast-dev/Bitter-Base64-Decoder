@@ -20,6 +20,8 @@ from modules.statics import Emoji, Encodings
 from modules.encodes import check_all, operations
 from modules.templates import Settings
 from os import getenv
+from modules.message_queue import MessageQueue
+from datetime import datetime
 
 
 intents = Intents()
@@ -35,6 +37,8 @@ tree = app_commands.CommandTree(client)
 encoding_choices = [
     app_commands.Choice(name=name, value=name) for name in Encodings.names
 ]
+
+queue = MessageQueue()
 
 
 db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
@@ -96,9 +100,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if len(message_info["content"]) <= index:
         return
     user = client.get_user(payload.user_id) or await client.fetch_user(payload.user_id)
-    await user.send(
-        embed=DecodeResponse(message_info["content"], message_info["jump_url"], index)
-    )
+    queue.append(user, DecodeResponse(message_info["content"], message_info["jump_url"], index), datetime.now())
 
 
 @client.event
