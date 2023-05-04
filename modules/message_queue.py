@@ -16,7 +16,7 @@ class MessageQueue(deque):
     Items that are appended should be a tuple of a user, embed and the datetime of when it was added.
     """
 
-    def __init__(self, test=None):
+    def __init__(self, test=tuple()):
         super().__init__(test)
         self._message_thread: Thread = Thread(target=self._message_queue, daemon=True)
         self._message_thread.start()
