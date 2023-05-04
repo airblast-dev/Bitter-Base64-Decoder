@@ -304,7 +304,6 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str =
 
 @tree.context_menu(name="Decode Message")
 async def decode_message(interaction: Interaction, message: Message):
-    await interaction.response.defer(ephemeral=True)
     message_info = db.find_content(
         interaction.guild.id, interaction.channel.id, message.id
     )
@@ -334,13 +333,9 @@ async def decode_message(interaction: Interaction, message: Message):
         message_info = {"content": content, "jump_url": message.jump_url}
     else:
         print("Message ID was in DB.")
-    user = client.get_user(interaction.user.id) or client.fetch_user(
-        interaction.user.id
-    )
-    await user.send(
-        embed=DecodeResponse(
-            message_info["content"], message_info["jump_url"], ephemeral=True
-        )
+    await interaction.response.send_message(
+        embed=DecodeResponse(message_info["content"], message_info["jump_url"]),
+        ephemeral=True,
     )
 
 
