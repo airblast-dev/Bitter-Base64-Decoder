@@ -30,6 +30,7 @@ intents.guilds = True
 intents.messages = True
 intents.members = True
 intents.reactions = True
+intents.presences = True
 client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
