@@ -16,8 +16,11 @@ class MessageQueue(deque):
     Items that are appended should be a tuple of a user, embed and the datetime of when it was added.
     """
 
-    def __init__(self, test=tuple()):
-        super().__init__(test)
+    high_load = False
+
+    def __init__(self, loop=None):
+        self.loop = loop
+        super().__init__()
         self._message_thread: Thread = Thread(target=self._message_queue, daemon=True)
         self._message_thread.start()
 
@@ -36,7 +39,7 @@ class MessageQueue(deque):
         was_sent = False
         if t_delta.total_seconds() < 30:
             was_sent = True
-            asyncio.run(user.send(embed=embed))
+            asyncio.run_coroutine_threadsafe(user.send(embed=embed), self.loop)
         self.popleft()
         return was_sent
 
@@ -46,23 +49,6 @@ class MessageQueue(deque):
                 current = self[0]
                 was_sent = self._send_message(current[0], current[1], current[2])
                 if was_sent is True:
-                    sleep(1.5)
+                    sleep(2)
                 self.high_load = True if i > 20 else False
             sleep(0.01)
-
-
-if __name__ == "__main__":
-
-    class FakeUser:
-        async def send(*args, **kwargs):
-            print("Message Sent - Test Passed")
-
-    test_messages = list()
-    for i in range(0, 3):
-        time = datetime.now()
-        embed = Embed(description=str(i))
-        test_messages.append((FakeUser, embed, time))
-        sleep(1)
-
-    MessageQueue(test_messages)
-    sleep(5)
