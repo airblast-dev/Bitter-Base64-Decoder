@@ -48,18 +48,15 @@ db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
 class ActivityNormal(discord.Activity):
     def __init__(self):
         super().__init__()
-        self.name = "for encoded content."
-        self.type = discord.ActivityType.listening
-        self.state = "Everything is going like a breeze."
+        self.name = "servers for new encoded messages!"
+        self.type = discord.ActivityType.watching
 
 
 class ActivityHighLoad(discord.Activity):
     def __init__(self):
         super().__init__()
-        self.name = f"**{client.user.name} is currently under high load!**"
-        self.type = discord.ActivityType.custom
-        self.state = "Im a bit tired. I might miss a few messages... sorry"
-        self.details = "Reaction based decoding is mostly disabled until everything goes back to normal"
+        self.name = f"Currently under high load!"
+        self.type = discord.ActivityType.playing
 
 
 class DecodeResponse(Embed):
