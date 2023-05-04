@@ -14,6 +14,7 @@ class MessageQueue(deque):
     can cause the bot to be quarantined. This isnt the be and end all to avoid it but its better than nothing.
 
     Items that are appended should be a tuple of a user, embed and the datetime of when it was added.
+    high_load: Is True if there is more than 20 messages in the queue or _soft_load is bigger than 100.
     """
 
     high_load = False
