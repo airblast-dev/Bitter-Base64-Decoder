@@ -22,6 +22,7 @@ from modules.templates import Settings
 from os import getenv
 from modules.message_queue import MessageQueue
 from datetime import datetime
+import asyncio
 
 
 intents = Intents()
@@ -436,6 +437,7 @@ async def on_guild_channel_create(channel):
 
 @client.event
 async def on_ready():
+    client.dm_queue = MessageQueue(client.loop)
     await tree.sync()
     db.add_guilds(client.guilds)
     db.add_channels(client.guilds)
