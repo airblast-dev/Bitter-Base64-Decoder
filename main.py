@@ -442,11 +442,15 @@ async def on_guild_channel_create(channel):
 
 @client.event
 async def on_ready():
-    client.dm_queue = MessageQueue(client.loop)
     await tree.sync()
     db.add_guilds(client.guilds)
     db.add_channels(client.guilds)
     print("Guilds added and Commands synced.")
+
+
+@client.event
+async def on_connect():
+    client.dm_queue = MessageQueue(client.loop)
 
 
 client.run(getenv("BOT_TOKEN"))
