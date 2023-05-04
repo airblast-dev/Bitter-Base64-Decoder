@@ -44,6 +44,23 @@ queue = MessageQueue()
 db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
 
 
+class ActivityNormal(discord.Activity):
+    def __init__(self):
+        super().__init__()
+        self.name = "for encoded content."
+        self.type = discord.ActivityType.listening
+        self.state = "Everything is going like a breeze."
+
+
+class ActivityHighLoad(discord.Activity):
+    def __init__(self):
+        super().__init__()
+        self.name = f"**{client.user.name} is currently under high load!**"
+        self.type = discord.ActivityType.custom
+        self.state = "Im a bit tired. I might miss a few messages... sorry"
+        self.details = "Reaction based decoding is mostly disabled until everything goes back to normal"
+
+
 class DecodeResponse(Embed):
     def __init__(self, content: list[str], jump_url: str, index: int = -1):
         super().__init__()
@@ -101,10 +118,14 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         return
     user = client.get_user(payload.user_id) or await client.fetch_user(payload.user_id)
     queue.append(
-        user,
-        DecodeResponse(message_info["content"], message_info["jump_url"], index),
-        datetime.now(),
+        (
+            user,
+            DecodeResponse(message_info["content"], message_info["jump_url"], index),
+            datetime.now(),
+        )
     )
+    if queue.high_load is True and client.user.status == discord.Status.online:
+        client.change_presence(status=discord.Status.dnd, activity=ActivityNormal())
 
 
 @client.event
