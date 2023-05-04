@@ -306,7 +306,7 @@ async def encode(interaction: discord.Interaction, content: str, encoding: str =
 
 @tree.context_menu(name="Decode Message")
 async def decode_message(interaction: Interaction, message: Message):
-    await interaction.respose.defer(ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
     message_info = db.find_content(
         interaction.guild.id, interaction.channel.id, message.id
     )
