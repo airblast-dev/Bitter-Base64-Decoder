@@ -40,8 +40,6 @@ encoding_choices = [
     app_commands.Choice(name=name, value=name) for name in Encodings.names
 ]
 
-queue = MessageQueue()
-
 
 db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
 
