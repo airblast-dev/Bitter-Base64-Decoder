@@ -64,7 +64,5 @@ class MessageQueue(deque):
                 self.high_load = (True if i > 20 else False) or (
                     True if self._soft_load > 100 else False
                 )
-                print(self._soft_load)
             self._soft_load -= message_count / 10 if message_count / 10 > 0.1 else 0.1
-            print(self._soft_load)
             sleep(0.05)
