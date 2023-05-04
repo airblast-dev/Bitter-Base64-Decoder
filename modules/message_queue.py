@@ -14,10 +14,12 @@ class MessageQueue(deque):
     can cause the bot to be quarantined. This isnt the be and end all to avoid it but its better than nothing.
 
     Items that are appended should be a tuple of a user, embed and the datetime of when it was added.
+
     high_load: Is True if there is more than 20 messages in the queue or _soft_load is bigger than 100.
     """
 
     high_load = False
+    _soft_load: int = 0
 
     def __init__(self, loop=None):
         self.loop = loop
@@ -38,18 +40,31 @@ class MessageQueue(deque):
         """
         t_delta = datetime.now() - t
         was_sent = False
-        if t_delta.total_seconds() < 30:
+        if t_delta.total_seconds() < 30 or self._soft_load < 100:
             was_sent = True
             asyncio.run_coroutine_threadsafe(user.send(embed=embed), self.loop)
         self.popleft()
         return was_sent
 
     def _message_queue(self):
+        """Discord doesnt exactly tell anyone what is considered flaggable or spam so this is my solution with the numbers i pulled from my backside."""
         while True:
+            message_count = 0
+            if self._soft_load < 0:
+                self._soft_load = 0
             while (i := (len(self))) > 0:
                 current = self[0]
                 was_sent = self._send_message(current[0], current[1], current[2])
                 if was_sent is True:
-                    sleep(2)
-                self.high_load = True if i > 20 else False
-            sleep(0.01)
+                    message_count += 1
+                    self._soft_load += 5
+                    sleep(1.5)
+                else:
+                    self._soft_load -= 1
+                self.high_load = (True if i > 20 else False) or (
+                    True if self._soft_load > 100 else False
+                )
+                print(self._soft_load)
+            self._soft_load -= message_count / 10 if message_count / 10 > 0.1 else 0.1
+            print(self._soft_load)
+            sleep(0.05)
