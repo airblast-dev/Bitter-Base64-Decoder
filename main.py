@@ -116,15 +116,22 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if len(message_info["content"]) <= index:
         return
     user = client.get_user(payload.user_id) or await client.fetch_user(payload.user_id)
-    queue.append(
+    client.dm_queue.append(
         (
             user,
             DecodeResponse(message_info["content"], message_info["jump_url"], index),
             datetime.now(),
         )
     )
-    if queue.high_load is True and client.user.status == discord.Status.online:
-        client.change_presence(status=discord.Status.dnd, activity=ActivityNormal())
+    if client.dm_queue.high_load is True and client.status == discord.Status.online:
+        await client.change_presence(
+            status=discord.Status.dnd, activity=ActivityHighLoad()
+        )
+        client.user.edit()
+    elif client.dm_queue.high_load is False and client.status == discord.Status.dnd:
+        await client.change_presence(
+            status=discord.Status.online, activity=ActivityNormal()
+        )
 
 
 @client.event
