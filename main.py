@@ -47,7 +47,7 @@ db = BitterDB(getenv("CONNECTION_STR"), getenv("DATABASE_NAME"))
 class ActivityNormal(discord.Activity):
     def __init__(self):
         super().__init__()
-        self.name = "servers for new encoded messages!"
+        self.name = "for encoded messages!"
         self.type = discord.ActivityType.watching
 
 
@@ -440,6 +440,9 @@ async def on_ready():
     await tree.sync()
     db.add_guilds(client.guilds)
     db.add_channels(client.guilds)
+    await client.change_presence(
+        status=discord.Status.online, activity=ActivityNormal()
+    )
     print("Guilds added and Commands synced.")
 
 
